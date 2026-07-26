@@ -191,8 +191,8 @@ class AuthorDashboard {
   final int totalBooks;
   final int publishedBooks;
   final int totalSales;
-  final int totalRevenueTzs;
-  final int totalEarningsTzs;
+  final double totalRevenueTzs;
+  final double totalEarningsTzs;
   final int totalReaders;
   final int totalFreeGrants;
   final double totalPaidOutTzs;
@@ -215,8 +215,8 @@ class AuthorDashboard {
         totalBooks: json['totalBooks'] as int,
         publishedBooks: json['publishedBooks'] as int,
         totalSales: json['totalSales'] as int,
-        totalRevenueTzs: json['totalRevenueTzs'] as int,
-        totalEarningsTzs: json['totalEarningsTzs'] as int,
+        totalRevenueTzs: (json['totalRevenueTzs'] as num).toDouble(),
+        totalEarningsTzs: (json['totalEarningsTzs'] as num).toDouble(),
         totalReaders: json['totalReaders'] as int,
         totalFreeGrants: json['totalFreeGrants'] as int,
         totalPaidOutTzs: (json['totalPaidOutTzs'] as num).toDouble(),

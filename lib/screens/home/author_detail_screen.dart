@@ -8,6 +8,7 @@ import 'package:tija/mixins/author_detail_mixin.dart';
 import 'package:tija/models/author_model.dart';
 import 'package:tija/screens/home/book_detail_screen.dart';
 import 'package:tija/states/author_state.dart';
+import 'package:tija/states/books_state.dart';
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -35,7 +36,7 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen>
 
     return Consumer<AuthorState>(
       builder: (_, authorState, __) => LoadingOverlay(
-        isVisible: authorState.isDetailLoading,
+        isVisible: authorState.isDetailLoading || isNavigatingToBookDetail,
         child: Scaffold(
           backgroundColor: theme.primaryBackground,
           body: SafeArea(
@@ -258,13 +259,7 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen>
                                   final book = author.books.items[index];
                                   return _PopularBookCard(
                                     book: book,
-                                    onTap: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => BookDetailScreen(
-                                          book: BookDetailArgs(bookId: book.id),
-                                        ),
-                                      ),
-                                    ),
+                                    onTap: () => navigateToBookDetail(book.id),
                                   );
                                 },
                               ),

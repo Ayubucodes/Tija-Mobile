@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:tija/components/loading_overlay.dart';
 import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
@@ -35,215 +36,214 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
 
     return Scaffold(
       backgroundColor: theme.primaryBackground,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // ── App bar with title and search ─────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                width / 22,
-                width / 45,
-                width / 22,
-                width / 45,
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: width / 10,
-                      height: width / 10,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.secondaryBackground,
-                      ),
-                      child: Icon(
-                        Icons.chevron_left_rounded,
-                        color: theme.primaryText,
-                        size: width / 16,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: width / 38),
-                  Expanded(
-                    child: Text(
-                      'Books',
-                      style: TextStyle(
-                        fontSize: width / 22,
-                        fontWeight: FontWeight.w700,
-                        color: theme.primaryText,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: width / 10),
-                ],
-              ),
-            ),
-            Divider(height: 1, thickness: 1, color: theme.lineColor),
-            SizedBox(height: width / 22),
-
-            // ── Search bar ────────────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(width / 22, 0, width / 22, 0),
-              child: Container(
-                height: width / 8,
-                decoration: BoxDecoration(
-                  color: theme.inputFilledColor,
-                  borderRadius: BorderRadius.circular(width / 27),
+      body: LoadingOverlay(
+        isVisible: isNavigatingToBookDetail,
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // ── App bar with title and search ─────────────────────────────
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  width / 22,
+                  width / 45,
+                  width / 22,
+                  width / 45,
                 ),
                 child: Row(
                   children: [
-                    SizedBox(width: width / 30),
-                    Icon(
-                      Iconsax.search_normal,
-                      color: theme.secondaryText,
-                      size: width / 22,
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: width / 10,
+                        height: width / 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.secondaryBackground,
+                        ),
+                        child: Icon(
+                          Icons.chevron_left_rounded,
+                          color: theme.primaryText,
+                          size: width / 16,
+                        ),
+                      ),
                     ),
-                    SizedBox(width: width / 45),
+                    SizedBox(width: width / 38),
                     Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: (_) => setState(() {}),
+                      child: Text(
+                        'Books',
                         style: TextStyle(
-                          fontSize: width / 26,
+                          fontSize: width / 22,
+                          fontWeight: FontWeight.w700,
                           color: theme.primaryText,
                         ),
-                        decoration: InputDecoration(
-                          hintText: 'Search books...',
-                          hintStyle: TextStyle(
-                            color: theme.secondaryText,
-                            fontSize: width / 26,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
                       ),
                     ),
-                    if (searchController.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          searchController.clear();
-                          setState(() {});
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: width / 30),
-                          child: Icon(
-                            Icons.close_rounded,
-                            color: theme.secondaryText,
-                            size: width / 22,
-                          ),
-                        ),
-                      ),
+                    SizedBox(width: width / 10),
                   ],
                 ),
               ),
-            ),
-            SizedBox(height: width / 22),
+              Divider(height: 1, thickness: 1, color: theme.lineColor),
+              SizedBox(height: width / 22),
 
-            // ── Books grid ────────────────────────────────────────────────
-            Expanded(
-              child: Consumer<BooksState>(
-                builder: (context, booksState, _) {
-                  if (booksState.isLoading) {
-                    return Center(
-                      child: Image.asset(
-                        AppAssets.LOADING_GIF,
-                        width: width / 7,
-                        height: width / 7,
+              // ── Search bar ────────────────────────────────────────────────
+              Padding(
+                padding: EdgeInsets.fromLTRB(width / 22, 0, width / 22, 0),
+                child: Container(
+                  height: width / 8,
+                  decoration: BoxDecoration(
+                    color: theme.inputFilledColor,
+                    borderRadius: BorderRadius.circular(width / 27),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: width / 30),
+                      Icon(
+                        Iconsax.search_normal,
+                        color: theme.secondaryText,
+                        size: width / 22,
                       ),
-                    );
-                  }
-
-                  if (booksState.isError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            booksState.errorMessage,
-                            style: TextStyle(
-                              fontSize: width / 26,
+                      SizedBox(width: width / 45),
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: (_) => setState(() {}),
+                          style: TextStyle(
+                            fontSize: width / 26,
+                            color: theme.primaryText,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Search books...',
+                            hintStyle: TextStyle(
                               color: theme.secondaryText,
+                              fontSize: width / 26,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                      if (searchController.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            searchController.clear();
+                            setState(() {});
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: width / 30,
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: theme.secondaryText,
+                              size: width / 22,
                             ),
                           ),
-                          SizedBox(height: width / 22),
-                          ElevatedButton(
-                            onPressed: () =>
-                                booksState.onGetBooks(pageSize: 50),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (booksState.items.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No books found',
-                        style: TextStyle(
-                          fontSize: width / 26,
-                          color: theme.secondaryText,
                         ),
-                      ),
-                    );
-                  }
-
-                  // Filter books based on search query
-                  final searchQuery = searchController.text.toLowerCase();
-                  final filteredBooks = booksState.items.where((book) {
-                    return book.title.toLowerCase().contains(searchQuery) ||
-                        book.author.fullName.toLowerCase().contains(
-                          searchQuery,
-                        );
-                  }).toList();
-
-                  if (filteredBooks.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No books match "${searchController.text}"',
-                        style: TextStyle(
-                          fontSize: width / 26,
-                          color: theme.secondaryText,
-                        ),
-                      ),
-                    );
-                  }
-
-                  return GridView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: EdgeInsets.fromLTRB(
-                      width / 22,
-                      0,
-                      width / 22,
-                      width / 12,
-                    ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: width / 30,
-                      mainAxisSpacing: width / 22,
-                      childAspectRatio: 0.65,
-                    ),
-                    itemCount: filteredBooks.length,
-                    itemBuilder: (_, i) => _BookCard(
-                      book: filteredBooks[i],
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => BookDetailScreen(
-                            book: BookDetailArgs(bookId: filteredBooks[i].id),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: width / 22),
+
+              // ── Books grid ────────────────────────────────────────────────
+              Expanded(
+                child: Consumer<BooksState>(
+                  builder: (context, booksState, _) {
+                    if (booksState.isLoading) {
+                      return Center(
+                        child: Image.asset(
+                          AppAssets.LOADING_GIF,
+                          width: width / 7,
+                          height: width / 7,
+                        ),
+                      );
+                    }
+
+                    if (booksState.isError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              booksState.errorMessage,
+                              style: TextStyle(
+                                fontSize: width / 26,
+                                color: theme.secondaryText,
+                              ),
+                            ),
+                            SizedBox(height: width / 22),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  booksState.onGetBooks(pageSize: 50),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    if (booksState.items.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No books found',
+                          style: TextStyle(
+                            fontSize: width / 26,
+                            color: theme.secondaryText,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Filter books based on search query
+                    final searchQuery = searchController.text.toLowerCase();
+                    final filteredBooks = booksState.items.where((book) {
+                      return book.title.toLowerCase().contains(searchQuery) ||
+                          book.author.fullName.toLowerCase().contains(
+                            searchQuery,
+                          );
+                    }).toList();
+
+                    if (filteredBooks.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No books match "${searchController.text}"',
+                          style: TextStyle(
+                            fontSize: width / 26,
+                            color: theme.secondaryText,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: EdgeInsets.fromLTRB(
+                        width / 22,
+                        0,
+                        width / 22,
+                        width / 12,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: width / 30,
+                        mainAxisSpacing: width / 22,
+                        childAspectRatio: 0.65,
+                      ),
+                      itemCount: filteredBooks.length,
+                      itemBuilder: (_, i) => _BookCard(
+                        book: filteredBooks[i],
+                        onTap: () => navigateToBookDetail(filteredBooks[i].id),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

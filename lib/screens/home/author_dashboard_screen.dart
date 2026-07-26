@@ -10,6 +10,7 @@ import 'package:tija/screens/home/reader_library_screen.dart';
 import 'package:tija/states/auth_state.dart';
 import 'package:tija/states/author_state.dart';
 import 'package:tija/states/reader_library_state.dart';
+import 'package:tija/widgets/empty_state.dart';
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -140,44 +141,46 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                   child: Consumer<AuthorState>(
                     builder: (context, authorState, _) {
                       if (authorState.isDashboardError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                authorState.dashboardErrorMessage,
-                                style: TextStyle(
-                                  fontSize: width / 26,
-                                  color: theme.secondaryText,
-                                ),
+                        return RefreshIndicator(
+                          onRefresh: retryLoadDashboard,
+                          displacement: 20,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height,
+                              child: EmptyState(
+                                message: authorState.dashboardErrorMessage,
                               ),
-                              SizedBox(height: width / 22),
-                              ElevatedButton(
-                                onPressed: retryLoadDashboard,
-                                child: const Text('Retry'),
-                              ),
-                            ],
+                            ),
                           ),
                         );
                       }
 
                       final dashboard = authorState.authorDashboard;
                       if (dashboard == null) {
-                        return Center(
-                          child: Text(
-                            'Dashboard not available',
-                            style: TextStyle(
-                              fontSize: width / 26,
-                              color: theme.secondaryText,
+                        return RefreshIndicator(
+                          onRefresh: retryLoadDashboard,
+                          displacement: 20,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height,
+                              child: EmptyState(
+                                message: 'Dashboard not available',
+                              ),
                             ),
                           ),
                         );
                       }
 
                       return SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
                         padding: EdgeInsets.fromLTRB(
                           width / 22,
                           width / 90,
@@ -522,8 +525,8 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
 
                             // ── Stats Grid ─────────────────────────────────────
                           ],
-                        ),
-                      );
+                        ),);
+                      
                     },
                   ),
                 ),

@@ -92,36 +92,25 @@ class _AuthorsScreenState extends State<AuthorsScreen> with SearchMixin {
                     ),
                   ),
                 ),
-                Divider(height: 1, thickness: 1, color: theme.lineColor),
-                SizedBox(height: width / 22),
+                // Divider(height: 1, thickness: 1, color: theme.lineColor),
+                // SizedBox(height: width / 22),
 
                 // ── Search bar ──────────────────────────────────────────
                 Padding(
-                  padding: EdgeInsets.fromLTRB(width / 22, 0, width / 22, 0),
+                  padding: EdgeInsets.symmetric(horizontal: width / 20),
                   child: Container(
                     height: width / 8,
-                    padding: EdgeInsets.symmetric(horizontal: width / 45),
                     decoration: BoxDecoration(
                       color: theme.inputFilledColor,
                       borderRadius: BorderRadius.circular(width / 27),
                     ),
                     child: Row(
                       children: [
-                        // Prefix icon — search, in a soft circular badge
-                        Container(
-                          width: width / 16,
-                          height: width / 16,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColor.defaultSecondaryColor.withOpacity(
-                              0.12,
-                            ),
-                          ),
-                          child: Icon(
-                            Iconsax.search_normal,
-                            color: AppColor.defaultSecondaryColor,
-                            size: width / 32,
-                          ),
+                        SizedBox(width: width / 30),
+                        Icon(
+                          Iconsax.search_normal,
+                          color: theme.secondaryText,
+                          size: width / 18,
                         ),
                         SizedBox(width: width / 45),
                         Expanded(
@@ -144,33 +133,20 @@ class _AuthorsScreenState extends State<AuthorsScreen> with SearchMixin {
                             ),
                           ),
                         ),
-                        // Cancel icon — clears the search text, only shown
-                        // once the user has typed something.
-                        if (searchController.text.isNotEmpty)
-                          GestureDetector(
-                            onTap: () {
-                              searchController.clear();
-                              setState(() {});
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.only(left: width / 45),
-                              child: Icon(
-                                Iconsax.close_circle,
-                                color: theme.secondaryText,
-                                size: width / 22,
-                              ),
-                            ),
-                          ),
-                        SizedBox(width: width / 60),
-                        // Suffix icon — filter/sort action
                         GestureDetector(
                           onTap: () {
-                            // TODO: hook up filter/sort logic here
+                            searchController.clear();
+                            setState(() {});
                           },
-                          child: Icon(
-                            Iconsax.setting_4,
-                            color: theme.secondaryText,
-                            size: width / 24,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: width / 30,
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: theme.secondaryText,
+                              size: width / 22,
+                            ),
                           ),
                         ),
                       ],

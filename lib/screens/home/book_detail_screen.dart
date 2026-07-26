@@ -39,14 +39,12 @@ class _BookDetailScreenState extends State<BookDetailScreen>
   late final TabController _tabController;
   bool _isFavourite = false;
   String? _lastFetchedGenreId;
-  bool _isOpeningBook = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BooksState>().onGetBookById(widget.book.bookId);
       context.read<ReaderLibraryState>().getReaderLibrary();
     });
   }
@@ -56,17 +54,6 @@ class _BookDetailScreenState extends State<BookDetailScreen>
       _lastFetchedGenreId = genreId;
       context.read<BooksState>().onGetRelatedBooks(genreId);
     }
-  }
-
-  @override
-  void navigateToReadScreen(String bookId) {
-    setState(() => _isOpeningBook = true);
-    super.navigateToReadScreen(bookId);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() => _isOpeningBook = false);
-      }
-    });
   }
 
   @override
@@ -86,10 +73,10 @@ class _BookDetailScreenState extends State<BookDetailScreen>
         builder: (context, booksState, _) {
           return LoadingOverlay(
             isVisible:
-                booksState.isLoadingDetail ||
-                booksState.isLoadingRelated ||
+                // booksState.isLoadingRelated ||
                 isPaymentProcessing ||
-                _isOpeningBook,
+                isNavigatingToReadScreen ||
+                isNavigatingToBookDetail,
             child: Builder(
               builder: (context) {
                 if (booksState.isErrorDetail) {
@@ -130,6 +117,8 @@ class _BookDetailScreenState extends State<BookDetailScreen>
                             book: book,
                             onFetchRelatedBooks: _fetchRelatedBooks,
                             lastFetchedGenreId: _lastFetchedGenreId,
+                            onNavigateToBookDetail: (bookId, {genreId}) =>
+                                navigateToBookDetail(bookId, genreId: genreId),
                           ),
                           _ReviewsTab(book: book),
                         ],
@@ -475,11 +464,13 @@ class _AboutTab extends StatelessWidget {
   final BookDetail book;
   final Function(String) onFetchRelatedBooks;
   final String? lastFetchedGenreId;
+  final Function(String, {String? genreId}) onNavigateToBookDetail;
 
   const _AboutTab({
     required this.book,
     required this.onFetchRelatedBooks,
     required this.lastFetchedGenreId,
+    required this.onNavigateToBookDetail,
   });
 
   @override
@@ -584,8 +575,11 @@ class _AboutTab extends StatelessWidget {
                   physics: const BouncingScrollPhysics(),
                   itemCount: relatedBooks.length,
                   separatorBuilder: (_, __) => SizedBox(width: width / 27),
-                  itemBuilder: (_, i) =>
-                      _RelatedBookCard(book: relatedBooks[i]),
+                  itemBuilder: (_, i) => _RelatedBookCard(
+                    book: relatedBooks[i],
+                    genreId: genreId,
+                    onTap: onNavigateToBookDetail,
+                  ),
                 ),
               );
             },
@@ -676,7 +670,13 @@ class _ReviewsTab extends StatelessWidget {
 // ---------------------------------------------------------------------------
 class _RelatedBookCard extends StatelessWidget {
   final Item book;
-  const _RelatedBookCard({required this.book});
+  final String? genreId;
+  final Function(String, {String? genreId}) onTap;
+  const _RelatedBookCard({
+    required this.book,
+    this.genreId,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -685,12 +685,7 @@ class _RelatedBookCard extends StatelessWidget {
     final price = 'Tsh ${book.priceTzs.toStringAsFixed(0)}';
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) =>
-              BookDetailScreen(book: BookDetailArgs(bookId: book.id)),
-        ),
-      ),
+      onTap: () => onTap(book.id, genreId: genreId),
       child: SizedBox(
         width: width / 3,
         child: Column(

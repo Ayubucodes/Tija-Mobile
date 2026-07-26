@@ -4,7 +4,6 @@ import 'package:tija/models/books_model.dart';
 import 'package:tija/services/books_services.dart';
 
 class BooksState extends ChangeNotifier {
-
   Books? _books;
   bool _isLoading = false;
   bool _isError = false;
@@ -84,7 +83,6 @@ class BooksState extends ChangeNotifier {
   String get searchErrorMessage => _searchErrorMessage;
 
   Future<void> onGetBooks({int page = 1, int pageSize = 10}) async {
-
     _isLoading = true;
     _isError = false;
     _errorMessage = '';
@@ -113,7 +111,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> onGetRelatedBooks(String genreId) async {
-
     _isLoadingRelated = true;
     _isErrorRelated = false;
     _errorMessageRelated = '';
@@ -143,7 +140,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> onGetBookById(String id) async {
-
     _isLoadingDetail = true;
     _isErrorDetail = false;
     _errorMessageDetail = '';
@@ -183,7 +179,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> onGetGenres() async {
-
     _isLoadingGenres = true;
     _isErrorGenres = false;
     _errorMessageGenres = '';
@@ -215,8 +210,6 @@ class BooksState extends ChangeNotifier {
     required int totalPages,
     required List<String> genreIds,
   }) async {
-
-
     _isUploading = true;
     _isUploadError = false;
     _uploadErrorMessage = '';
@@ -250,7 +243,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<bool> uploadBookFile(String bookId, File file) async {
-
     _isUploadingFiles = true;
     _isUploadFilesError = false;
     _uploadFilesErrorMessage = '';
@@ -278,7 +270,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<bool> uploadCover(File file) async {
-
     _isUploadingFiles = true;
     _isUploadFilesError = false;
     _uploadFilesErrorMessage = '';
@@ -306,7 +297,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> searchBooks({String? query}) async {
-
     _isSearching = true;
     _isSearchError = false;
     _searchErrorMessage = '';

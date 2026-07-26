@@ -7,6 +7,7 @@ import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/models/reader_library_model.dart';
 import 'package:tija/screens/home/book_detail_screen.dart';
+import 'package:tija/states/books_state.dart';
 import 'package:tija/states/reader_library_state.dart';
 import 'package:tija/widgets/placeholder.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,12 +20,28 @@ class ReaderLibraryScreen extends StatefulWidget {
 }
 
 class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
+  bool _isNavigating = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReaderLibraryState>().getReaderLibrary();
     });
+  }
+
+  Future<void> navigateToBookDetail(String bookId) async {
+    setState(() => _isNavigating = true);
+    await context.read<BooksState>().onGetBookById(bookId);
+    if (mounted) {
+      setState(() => _isNavigating = false);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              BookDetailScreen(book: BookDetailArgs(bookId: bookId)),
+        ),
+      );
+    }
   }
 
   @override
@@ -34,7 +51,7 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
 
     return Consumer<ReaderLibraryState>(
       builder: (_, libraryState, __) => LoadingOverlay(
-        isVisible: libraryState.isLoading,
+        isVisible: libraryState.isLoading || _isNavigating,
         child: Scaffold(
           backgroundColor: theme.primaryBackground,
           body: SafeArea(
@@ -148,13 +165,7 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
                             final book = libraryState.books[index];
                             return _LibraryBookCard(
                               book: book,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => BookDetailScreen(
-                                    book: BookDetailArgs(bookId: book.bookId),
-                                  ),
-                                ),
-                              ),
+                              onTap: () => navigateToBookDetail(book.bookId),
                             );
                           },
                         ),

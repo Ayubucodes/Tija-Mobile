@@ -11,7 +11,7 @@ mixin AuthorDashboardMixin<T extends StatefulWidget> on State<T> {
     });
   }
 
-  void retryLoadDashboard() {
-    context.read<AuthorState>().getAuthorDashboard();
+  Future<void> retryLoadDashboard() async {
+    await context.read<AuthorState>().getAuthorDashboard();
   }
 }

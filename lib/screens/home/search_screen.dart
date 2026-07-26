@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/custom_card.dart';
 import 'package:tija/components/loading_overlay.dart';
-import 'package:tija/constants/app_asset.dart';
+import 'package:tija/widgets/empty_state.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/mixins/search_mixin.dart';
@@ -81,7 +80,10 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
 
     return Consumer<BooksState>(
       builder: (_, booksState, __) => LoadingOverlay(
-        isVisible: booksState.isLoadingRelated || booksState.isLoading,
+        isVisible:
+            booksState.isLoadingRelated ||
+            booksState.isLoading ||
+            isNavigatingToBookDetail,
         child: Scaffold(
           backgroundColor: theme.primaryBackground,
           extendBody: true,
@@ -383,7 +385,7 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
     }
 
     if (booksToDisplay.isEmpty) {
-      return _buildEmptyState(width, theme, emptyMessage);
+      return EmptyState(message: emptyMessage);
     }
 
     return SizedBox(
@@ -403,40 +405,9 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
             imageUrl: book.coverImageUrl,
             width: width / 3.2,
             imageHeight: width / 2.4,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    BookDetailScreen(book: BookDetailArgs(bookId: book.id)),
-              ),
-            ),
+            onTap: () => navigateToBookDetail(book.id),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(double width, AppTheme theme, String message) {
-    return SizedBox(
-      height: width / 1.6,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              AppAssets.STAR_ICON,
-              width: width / 15,
-              height: width / 15,
-            ),
-            SizedBox(height: width / 30),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: width / 26,
-                color: theme.secondaryText,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -77,7 +77,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(width / 4.5, 0, width / 4.5, width / 110),
+        padding: EdgeInsets.fromLTRB(width / 4.5, 0, width / 4.5, width / 50),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(width / 17),
           child: BackdropFilter(

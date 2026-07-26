@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tija/screens/home/book_detail_screen.dart';
+import 'package:tija/states/books_state.dart';
 
 mixin SearchMixin<T extends StatefulWidget> on State<T> {
   final TextEditingController searchController = TextEditingController();
   List<String> recentSearches = [];
   int selectedCategory = 0;
+  bool isNavigatingToBookDetail = false;
   static const String _recentSearchesKey = 'recent_searches';
 
   @override
@@ -38,4 +42,18 @@ mixin SearchMixin<T extends StatefulWidget> on State<T> {
   }
 
   void onSearchChanged(String query) => setState(() {});
+
+  Future<void> navigateToBookDetail(String bookId) async {
+    setState(() => isNavigatingToBookDetail = true);
+    await context.read<BooksState>().onGetBookById(bookId);
+    if (mounted) {
+      setState(() => isNavigatingToBookDetail = false);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              BookDetailScreen(book: BookDetailArgs(bookId: bookId)),
+        ),
+      );
+    }
+  }
 }
