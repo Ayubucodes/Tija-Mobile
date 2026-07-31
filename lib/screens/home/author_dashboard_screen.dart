@@ -134,7 +134,8 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                             child: SizedBox(
                               height: MediaQuery.of(context).size.height,
                               child: EmptyState(
-                                message: authorState.dashboardErrorMessage,
+                                message:
+                                    'Something went wrong, please logout and login again',
                               ),
                             ),
                           ),
@@ -605,7 +606,9 @@ class _OverviewCardState extends State<_OverviewCard> {
               _MiniStat(
                 width: width,
                 label: 'Paid Out',
-                value: isHidden ? 'TZS * * * * *' : AppUtil.formatMoney(widget.paidOutTzs),
+                value: isHidden
+                    ? 'TZS * * * * *'
+                    : AppUtil.formatMoney(widget.paidOutTzs),
               ),
             ],
           ),

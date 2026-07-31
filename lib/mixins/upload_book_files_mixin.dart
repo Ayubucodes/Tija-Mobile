@@ -129,9 +129,7 @@ mixin UploadBookFilesMixin<T extends StatefulWidget> on State<T> {
       }
       AppUtil.showToastMessage(
         isError: true,
-        message: booksState.uploadFilesErrorMessage.isNotEmpty
-            ? booksState.uploadFilesErrorMessage
-            : 'Failed to upload cover image',
+        message: 'Failed to upload cover image',
       );
       return;
     }
@@ -143,9 +141,7 @@ mixin UploadBookFilesMixin<T extends StatefulWidget> on State<T> {
       }
       AppUtil.showToastMessage(
         isError: true,
-        message: booksState.uploadFilesErrorMessage.isNotEmpty
-            ? booksState.uploadFilesErrorMessage
-            : 'Failed to upload book file',
+        message: 'Failed to upload book file',
       );
       return;
     }
@@ -172,9 +168,7 @@ mixin UploadBookFilesMixin<T extends StatefulWidget> on State<T> {
       }
       AppUtil.showToastMessage(
         isError: true,
-        message: booksState.updateBookErrorMessage.isNotEmpty
-            ? booksState.updateBookErrorMessage
-            : 'Failed to update book',
+        message: 'Failed to update book',
       );
       return;
     }

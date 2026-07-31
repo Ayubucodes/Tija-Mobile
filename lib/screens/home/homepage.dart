@@ -8,10 +8,8 @@ import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/mixins/search_mixin.dart';
 import 'package:tija/models/books_model.dart';
-import 'package:tija/screens/home/book_detail_screen.dart';
 import 'package:tija/screens/home/more_books_screen.dart';
 import 'package:tija/states/books_state.dart';
-import 'package:tija/widgets/animated_text.dart';
 import 'package:tija/widgets/empty_state.dart';
 
 class Homepage extends StatefulWidget {
@@ -29,11 +27,13 @@ class _HomepageState extends State<Homepage> with SearchMixin {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BooksState>().onGetBooks();
+      context.read<BooksState>().getMostPopularBooks();
     });
   }
 
   Future<void> onRefresh() async {
     await context.read<BooksState>().onGetBooks();
+    await context.read<BooksState>().getMostPopularBooks();
   }
 
   void _performSearch(String query) {
@@ -90,8 +90,8 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                 child: Row(
                   children: [
                     Expanded(
-                      child: BouncingLetterText(
-                        text: "Today's Deal",
+                      child: Text(
+                        "Today's Deal",
                         style: TextStyle(
                           fontSize: width / 18,
                           fontWeight: FontWeight.w700,
@@ -175,7 +175,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                       children: [
                         // Best Selling — driven by BooksState
                         _SectionHeader(
-                          title: 'Best Selling Books',
+                          title: 'New Book List',
                           onMoreTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
@@ -221,7 +221,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                                   horizontal: width / 20,
                                   vertical: width / 200,
                                 ),
-                                itemCount: items.length,
+                                itemCount: items.length > 5 ? 5 : items.length,
                                 separatorBuilder: (_, __) =>
                                     SizedBox(width: width / 24),
                                 itemBuilder: (_, i) {
@@ -236,6 +236,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                                       author: author,
                                       price: price,
                                       imageUrl: imageUrl,
+                                      isNew: i == 0,
                                       onTap: () =>
                                           navigateToBookDetail(item.id),
                                     ),
@@ -261,9 +262,9 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                         SizedBox(height: width / 25),
                         Consumer<BooksState>(
                           builder: (context, booksState, _) {
-                            final items = booksState.items;
+                            final items = booksState.mostPopularItems;
 
-                            if (booksState.isLoading) {
+                            if (booksState.isLoadingMostPopular) {
                               return BookCardShimmerList(
                                 // height: width / 1.6,
                                 itemWidth: width / 2.8,
@@ -285,7 +286,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                                   horizontal: width / 20,
                                   vertical: width / 200,
                                 ),
-                                itemCount: items.length,
+                                itemCount: items.length > 5 ? 5 : items.length,
                                 separatorBuilder: (_, __) =>
                                     SizedBox(width: width / 24),
                                 itemBuilder: (_, i) {

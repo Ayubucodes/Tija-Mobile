@@ -36,9 +36,7 @@ mixin AuthorDashboardMixin<T extends StatefulWidget> on State<T> {
     if (libraryState.isError) {
       AppUtil.showToastMessage(
         isError: true,
-        message: libraryState.errorMessage.isNotEmpty
-            ? libraryState.errorMessage
-            : 'Failed to load books',
+        message: 'Something went wrong',
       );
       return;
     }
@@ -56,7 +54,7 @@ mixin AuthorDashboardMixin<T extends StatefulWidget> on State<T> {
       if (bookState.isErrorDetail) {
         AppUtil.showToastMessage(
           isError: true,
-          message: 'Failed to load genres please try again later',
+          message: 'Something went wrong',
         );
         return;
       }
@@ -78,7 +76,7 @@ mixin AuthorDashboardMixin<T extends StatefulWidget> on State<T> {
       if (bookState.isErrorAuthorBooks) {
         AppUtil.showToastMessage(
           isError: true,
-          message: 'Something went wrong',
+          message: 'Something went wrong, please logout and login again',
         );
         return;
       }

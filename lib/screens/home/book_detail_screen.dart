@@ -11,6 +11,7 @@ import 'package:tija/mixins/book_detail_mixin.dart';
 import 'package:tija/mixins/payment_mixin.dart';
 import 'package:tija/models/books_model.dart';
 import 'package:tija/screens/home/add_review_screen.dart';
+import 'package:tija/screens/home/more_books_screen.dart';
 import 'package:tija/states/books_state.dart';
 import 'package:tija/states/reader_library_state.dart';
 import 'package:tija/utils/app_util.dart';
@@ -563,22 +564,29 @@ class _AboutTab extends StatelessWidget {
                   color: theme.primaryText,
                 ),
               ),
-              Row(
-                children: [
-                  Text(
-                    'More',
-                    style: TextStyle(
-                      fontSize: width / 28,
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => MoreBooksScreen()));
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      'More',
+                      style: TextStyle(
+                        fontSize: width / 28,
+                        color: theme.secondaryText,
+                      ),
+                    ),
+                    SizedBox(width: width / 180),
+                    Icon(
+                      Iconsax.arrow_right_3,
+                      size: width / 22,
                       color: theme.secondaryText,
                     ),
-                  ),
-                  SizedBox(width: width / 180),
-                  Icon(
-                    Iconsax.arrow_right_3,
-                    size: width / 22,
-                    color: theme.secondaryText,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

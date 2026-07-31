@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/utils/app_util.dart';
@@ -10,6 +11,7 @@ class BookCard extends StatelessWidget {
   final String imageUrl;
   final double width;
   final VoidCallback? onTap;
+  final bool isNew;
 
   const BookCard({
     super.key,
@@ -19,11 +21,13 @@ class BookCard extends StatelessWidget {
     required this.imageUrl,
     this.width = 130,
     this.onTap,
+    this.isNew = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final radius = screenWidth / 27;
 
     return GestureDetector(
       onTap: onTap,
@@ -36,28 +40,35 @@ class BookCard extends StatelessWidget {
             // Cover image - flexes to fill remaining space, never overflows
             Expanded(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(screenWidth / 27),
-                child: imageUrl.startsWith('http')
-                    ? Image.network(
-                        imageUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => PlaceholderCover(
-                          width: width,
-                          height: double.infinity,
-                        ),
-                      )
-                    : Image.asset(
-                        imageUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => PlaceholderCover(
-                          width: width,
-                          height: double.infinity,
-                        ),
-                      ),
+                borderRadius: BorderRadius.circular(radius),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: imageUrl.startsWith('http')
+                          ? Image.network(
+                              imageUrl,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => PlaceholderCover(
+                                width: width,
+                                height: double.infinity,
+                              ),
+                            )
+                          : Image.asset(
+                              imageUrl,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => PlaceholderCover(
+                                width: width,
+                                height: double.infinity,
+                              ),
+                            ),
+                    ),
+                    if (isNew) _NewRibbon(width: width),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: screenWidth / 45),
@@ -100,6 +111,56 @@ class BookCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Diagonal "NEW" ribbon that sits in the top-left corner and
+/// spans across it, joining the top and left edges of the card.
+class _NewRibbon extends StatelessWidget {
+  final double width;
+
+  const _NewRibbon({required this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    // Ribbon length scales with the card so it always reaches both edges.
+    final ribbonLength = width * 0.95;
+
+    return Positioned(
+      top: ribbonLength * 0.12,
+      left: -ribbonLength * 0.32,
+      child: Transform.rotate(
+        angle: -math.pi / 4, // -45 degrees
+        child: Container(
+          width: ribbonLength,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            'NEW',
+            style: TextStyle(
+              fontSize: width / 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
       ),
     );

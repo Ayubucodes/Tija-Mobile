@@ -15,9 +15,7 @@ mixin AuthorMixin<T extends StatefulWidget> on State<T> {
     if (!success) {
       AppUtil.showToastMessage(
         isError: true,
-        message: authorState.detailErrorMessage.isNotEmpty
-            ? authorState.detailErrorMessage
-            : 'Something went wrong',
+          message: 'Something went wrong',
       );
       return;
     }

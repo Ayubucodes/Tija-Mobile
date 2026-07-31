@@ -73,6 +73,12 @@ class BooksState extends ChangeNotifier {
   bool _isErrorAuthorBooks = false;
   String _errorMessageAuthorBooks = '';
 
+  // State for most popular books
+  Books? _mostPopularBooks;
+  bool _isLoadingMostPopular = false;
+  bool _isErrorMostPopular = false;
+  String _errorMessageMostPopular = '';
+
   Books? get books => _books;
   List<Item> get items => _books?.items ?? [];
   bool get isLoading => _isLoading;
@@ -122,6 +128,12 @@ class BooksState extends ChangeNotifier {
   bool get isLoadingAuthorBooks => _isLoadingAuthorBooks;
   bool get isErrorAuthorBooks => _isErrorAuthorBooks;
   String get errorMessageAuthorBooks => _errorMessageAuthorBooks;
+
+  Books? get mostPopularBooks => _mostPopularBooks;
+  List<Item> get mostPopularItems => _mostPopularBooks?.items ?? [];
+  bool get isLoadingMostPopular => _isLoadingMostPopular;
+  bool get isErrorMostPopular => _isErrorMostPopular;
+  String get errorMessageMostPopular => _errorMessageMostPopular;
 
   bool get isUpdatingBook => _isUpdatingBook;
   bool get isUpdateBookError => _isUpdateBookError;
@@ -487,6 +499,34 @@ class BooksState extends ChangeNotifier {
     }
 
     _isLoadingAuthorBooks = false;
+    notifyListeners();
+  }
+
+  Future<void> getMostPopularBooks({int page = 1, int pageSize = 20}) async {
+    _isLoadingMostPopular = true;
+    _isErrorMostPopular = false;
+    _errorMessageMostPopular = '';
+    notifyListeners();
+
+    try {
+      final result = await BooksService.getMostPopularBooks(
+        page: page,
+        pageSize: pageSize,
+      );
+
+      if (result != null) {
+        _mostPopularBooks = result;
+        _isErrorMostPopular = false;
+      } else {
+        _isErrorMostPopular = true;
+        _errorMessageMostPopular = 'Failed to load popular books.';
+      }
+    } catch (e) {
+      _isErrorMostPopular = true;
+      _errorMessageMostPopular = e.toString();
+    }
+
+    _isLoadingMostPopular = false;
     notifyListeners();
   }
 

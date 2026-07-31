@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:tija/components/book_card_shimmer.dart';
 import 'package:tija/components/loading_overlay.dart';
 import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_color.dart';
@@ -43,7 +44,7 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
           bottom: false,
           child: Column(
             children: [
-              // ── App bar with title and search ─────────────────────────────
+              // ── App bar with back button and search ─────────────────────
               Padding(
                 padding: EdgeInsets.fromLTRB(
                   width / 22,
@@ -69,81 +70,65 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
                         ),
                       ),
                     ),
+                    SizedBox(width: width / 22),
                     Expanded(
-                      child: Text(
-                        'Books',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: width / 22,
-                          fontWeight: FontWeight.w700,
-                          color: theme.primaryText,
+                      child: Container(
+                        height: width / 10,
+                        decoration: BoxDecoration(
+                          color: theme.inputFilledColor,
+                          borderRadius: BorderRadius.circular(width / 27),
                         ),
-                      ),
-                    ),
-                    SizedBox(width: width / 10),
-                  ],
-                ),
-              ),
-              Divider(height: 1, thickness: 1, color: theme.lineColor),
-              SizedBox(height: width / 22),
-
-              // ── Search bar ────────────────────────────────────────────────
-              Padding(
-                padding: EdgeInsets.fromLTRB(width / 22, 0, width / 22, 0),
-                child: Container(
-                  height: width / 8,
-                  decoration: BoxDecoration(
-                    color: theme.inputFilledColor,
-                    borderRadius: BorderRadius.circular(width / 27),
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(width: width / 30),
-                      Icon(
-                        Iconsax.search_normal,
-                        color: theme.secondaryText,
-                        size: width / 22,
-                      ),
-                      SizedBox(width: width / 45),
-                      Expanded(
-                        child: TextField(
-                          controller: searchController,
-                          onChanged: (_) => setState(() {}),
-                          style: TextStyle(
-                            fontSize: width / 26,
-                            color: theme.primaryText,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Search books...',
-                            hintStyle: TextStyle(
-                              color: theme.secondaryText,
-                              fontSize: width / 26,
-                            ),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                      if (searchController.text.isNotEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            searchController.clear();
-                            setState(() {});
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: width / 30,
-                            ),
-                            child: Icon(
-                              Icons.close_rounded,
+                        child: Row(
+                          children: [
+                            SizedBox(width: width / 30),
+                            Icon(
+                              Iconsax.search_normal,
                               color: theme.secondaryText,
                               size: width / 22,
                             ),
-                          ),
+                            SizedBox(width: width / 45),
+                            Expanded(
+                              child: TextField(
+                                controller: searchController,
+                                onChanged: (_) => setState(() {}),
+                                style: TextStyle(
+                                  fontSize: width / 26,
+                                  color: theme.primaryText,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search books...',
+                                  hintStyle: TextStyle(
+                                    color: theme.secondaryText,
+                                    fontSize: width / 26,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ),
+                            if (searchController.text.isNotEmpty)
+                              GestureDetector(
+                                onTap: () {
+                                  searchController.clear();
+                                  setState(() {});
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: width / 30,
+                                  ),
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    color: theme.secondaryText,
+                                    size: width / 22,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: width / 22),
@@ -153,11 +138,26 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
                 child: Consumer<BooksState>(
                   builder: (context, booksState, _) {
                     if (booksState.isLoading) {
-                      return Center(
-                        child: Image.asset(
-                          AppAssets.LOADING_GIF,
-                          width: width / 7,
-                          height: width / 7,
+                      return GridView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        padding: EdgeInsets.fromLTRB(
+                          width / 22,
+                          0,
+                          width / 22,
+                          width / 12,
+                        ),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: width / 30,
+                          mainAxisSpacing: width / 22,
+                          childAspectRatio: 0.65,
+                        ),
+                        itemCount: 6,
+                        itemBuilder: (_, __) => BookCardShimmer(
+                          width: width / 2.2,
+                          imageHeight: width / 2.1,
                         ),
                       );
                     }
@@ -245,6 +245,7 @@ class _BookCard extends StatelessWidget {
                 book.coverImageUrl ?? '',
                 width: double.infinity,
                 fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
                 errorBuilder: (_, __, ___) => _buildDefaultCover(width),
               ),
             ),

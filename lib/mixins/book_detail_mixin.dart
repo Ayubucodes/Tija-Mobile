@@ -13,7 +13,7 @@ mixin BookDetailController<T extends StatefulWidget> on State<T> {
   Future<void> navigateToReadScreen(String bookId) async {
     final booksState = Provider.of<BooksState>(context, listen: false);
     if (booksState.isError) {
-      AppUtil.showToastMessage(isError: true, message: 'Failed to open book');
+      AppUtil.showToastMessage(isError: true, message: 'Something went wrong');
       return;
     }
 
@@ -28,9 +28,7 @@ mixin BookDetailController<T extends StatefulWidget> on State<T> {
       }
       AppUtil.showToastMessage(
         isError: true,
-        message: readerState.errorMessage.isNotEmpty
-            ? readerState.errorMessage
-            : 'Failed to open book',
+        message : 'Something went wrong, please logout and login again',
       );
       return;
     }
@@ -45,9 +43,7 @@ mixin BookDetailController<T extends StatefulWidget> on State<T> {
       }
       AppUtil.showToastMessage(
         isError: true,
-        message: readerState.errorMessage.isNotEmpty
-            ? readerState.errorMessage
-            : 'Failed to open book',
+        message: 'Something went wrong',
       );
       return;
     }

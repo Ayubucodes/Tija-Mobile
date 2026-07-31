@@ -3,6 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/custom_card.dart';
 import 'package:tija/components/loading_overlay.dart';
+import 'package:tija/screens/home/more_books_screen.dart';
 import 'package:tija/widgets/empty_state.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
@@ -242,30 +243,39 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'New Book List',
+                                'Best Selling Books',
                                 style: TextStyle(
                                   fontSize: width / 22,
                                   fontWeight: FontWeight.w700,
                                   color: theme.primaryText,
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'more',
-                                    style: TextStyle(
-                                      fontSize: width / 28,
-                                      color: theme.secondaryText,
-                                      fontWeight: FontWeight.w500,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => MoreBooksScreen(),
                                     ),
-                                  ),
-                                  SizedBox(width: width / 180),
-                                  Icon(
-                                    Iconsax.arrow_right_3,
-                                    size: width / 22,
-                                    color: theme.secondaryText,
-                                  ),
-                                ],
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'more',
+                                      style: TextStyle(
+                                        fontSize: width / 28,
+                                        color: theme.secondaryText,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(width: width / 180),
+                                    Icon(
+                                      Iconsax.arrow_right_3,
+                                      size: width / 22,
+                                      color: theme.secondaryText,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -394,7 +404,7 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: EdgeInsets.symmetric(horizontal: width / 20),
-        itemCount: booksToDisplay.length,
+        itemCount: booksToDisplay.length > 5 ? 5 : booksToDisplay.length,
         separatorBuilder: (_, __) => SizedBox(width: width / 27),
         itemBuilder: (_, i) {
           final book = booksToDisplay[i];

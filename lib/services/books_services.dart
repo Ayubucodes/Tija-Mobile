@@ -141,6 +141,50 @@ class BooksService {
     }
   }
 
+  static Future<Books?> getMostPopularBooks({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final baseUrl = await AppApi.getBooksFullUrl;
+      final queryParams = {
+        'page': page.toString(),
+        'pageSize': pageSize.toString(),
+        'Sort': 'MostPopular',
+      };
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final dataResponse = jsonDecode(response.body);
+      print('BooksService MOST POPULAR RESPONSE: $dataResponse');
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        if (dataResponse is Map<String, dynamic>) {
+          if (dataResponse.containsKey('items')) {
+            return Books.fromJson(dataResponse);
+          }
+
+          if (dataResponse['responseCode'] ==
+                  ApiStatusResponseCode.validCREDENTIALS &&
+              dataResponse['books'] is Map<String, dynamic>) {
+            return Books.fromJson(dataResponse['books']);
+          }
+        }
+      }
+
+      return null;
+    } catch (e, stack) {
+      print('BooksService MOST POPULAR ERROR: $e');
+      print('BooksService MOST POPULAR STACK: $stack');
+      return null;
+    }
+  }
+
   static Future<BookDetail?> onGetBookById(String id) async {
     try {
       final baseUrl = await AppApi.bookByIdFullUrl(id);
