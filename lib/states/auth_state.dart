@@ -19,12 +19,14 @@ class AuthState extends ChangeNotifier {
   bool _isLoading = false;
   bool _isError = false;
   String _errorMessage = '';
+  bool _noInactivityTimeout = false;
 
   AuthResponse? get user => _user;
   bool get isLoading => _isLoading;
   bool get isError => _isError;
   String get errorMessage => _errorMessage;
   bool get isLoggedIn => _user != null;
+  bool get noInactivityTimeout => _noInactivityTimeout;
 
   // ── Login ────────────────────────────────────────────────────────────────
   Future<bool> onLogin({
@@ -182,11 +184,24 @@ class AuthState extends ChangeNotifier {
   // ── Logout ───────────────────────────────────────────────────────────────
   Future<void> logout() async {
     _user = null;
+    _noInactivityTimeout = true;
     await _storage.delete(key: AppPreference.accessToken);
     await _storage.delete(key: AppPreference.userId);
     await _storage.delete(key: AppPreference.fullName);
     await _storage.delete(key: AppPreference.email);
     await _storage.delete(key: AppPreference.phoneNumber);
+    notifyListeners();
+  }
+
+  // ── Set App No Inactivity Status ──────────────────────────────────────────
+  void onSetAppNoInactivityStatus({required bool inactivityStatus}) {
+    _noInactivityTimeout = inactivityStatus;
+    notifyListeners();
+  }
+
+  // ── Arm Session ───────────────────────────────────────────────────────────
+  void armSession() {
+    _noInactivityTimeout = false;
     notifyListeners();
   }
 }

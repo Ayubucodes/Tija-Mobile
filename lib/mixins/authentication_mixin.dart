@@ -64,6 +64,7 @@ mixin AuthenticationMixin<T extends StatefulWidget> on State<T> {
     if (!mounted) return;
 
     if (success) {
+      context.read<AuthState>().armSession();
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } else {
       AppUtil.showToastMessage(
@@ -103,6 +104,7 @@ mixin AuthenticationMixin<T extends StatefulWidget> on State<T> {
       if (!mounted) return;
 
       if (loginSuccess) {
+        context.read<AuthState>().armSession();
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('/home', (route) => false);

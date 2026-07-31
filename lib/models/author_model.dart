@@ -21,7 +21,7 @@ class Author {
     profilePictureUrl: json['profilePictureUrl'] as String?,
     totalBooks: json['totalBooks'] as int,
     reviewCount: json['reviewCount'] as int,
-    averageRating: json['averageRating'] as double?,
+    averageRating: (json['averageRating'] as num?)?.toDouble(),
   );
 }
 
@@ -53,7 +53,7 @@ class AuthorDetail {
     profilePictureUrl: json['profilePictureUrl'] as String?,
     totalBooks: json['totalBooks'] as int,
     reviewCount: json['reviewCount'] as int,
-    averageRating: json['averageRating'] as double?,
+    averageRating: (json['averageRating'] as num?)?.toDouble(),
     books: PaginatedBooks.fromJson(json['books'] as Map<String, dynamic>),
   );
 }
@@ -67,7 +67,7 @@ class Book {
   final String status;
   final AuthorInfo author;
   final List<Genre> genres;
-  final String publishedAt;
+  final String? publishedAt;
 
   Book({
     required this.id,
@@ -78,7 +78,7 @@ class Book {
     required this.status,
     required this.author,
     required this.genres,
-    required this.publishedAt,
+    this.publishedAt,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) => Book(
@@ -92,7 +92,7 @@ class Book {
     genres: (json['genres'] as List)
         .map((e) => Genre.fromJson(e as Map<String, dynamic>))
         .toList(),
-    publishedAt: json['publishedAt'] as String,
+    publishedAt: json['publishedAt'] as String?,
   );
 }
 

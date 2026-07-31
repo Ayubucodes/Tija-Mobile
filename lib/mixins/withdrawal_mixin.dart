@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/action_button.dart';
 import 'package:tija/components/custom_dialog.dart';
 import 'package:tija/components/input_field.dart';
 import 'package:tija/components/shake_error.dart';
-import 'package:tija/constants/app_preference.dart';
 import 'package:tija/constants/app_theme.dart';
-import 'package:tija/services/payment_service.dart';
-import 'package:tija/states/reader_library_state.dart';
+import 'package:tija/states/payout_state.dart';
 import 'package:tija/utils/app_util.dart';
 
-mixin PaymentMixin<T extends StatefulWidget> on State<T> {
+mixin WithdrawalMixin<T extends StatefulWidget> on State<T> {
   final _formKey = GlobalKey<FormState>();
+  final _amountController = TextEditingController();
   final _phoneNumberController = TextEditingController();
+  final _amountShakeKey = GlobalKey<ShakeErrorState>();
   final _phoneNumberShakeKey = GlobalKey<ShakeErrorState>();
-  bool _isPaymentProcessing = false;
 
-  bool get isPaymentProcessing => _isPaymentProcessing;
+  // Kept for any external checks (e.g. page-level LoadingOverlay elsewhere),
+  // but the bottom sheet no longer depends on this for its own spinner.
+  bool _isWithdrawing = false;
+  bool get isWithdrawing => _isWithdrawing;
 
-  void showPhoneNumberBottomSheet(String bookId) {
+  void showWithdrawalBottomSheet() {
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
 
@@ -33,48 +35,46 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
           // widget tree (i.e. on top of the sheet), instead of relying on
           // a page-level LoadingOverlay that sits *underneath* the modal
           // bottom sheet's OverlayEntry and therefore never visibly covers it.
-          bool isSubmitting = _isPaymentProcessing;
+          bool isSubmitting = _isWithdrawing;
 
-          Future<void> processPayment() async {
+          Future<void> processWithdrawal() async {
             setSheetState(() => isSubmitting = true);
-            setState(() => _isPaymentProcessing = true);
+            setState(() => _isWithdrawing = true);
 
             try {
+              final amount = _amountController.text.trim();
               final phoneNumber = _phoneNumberController.text.trim();
 
-              // Save phone number to secure storage
-              const storage = FlutterSecureStorage(
-                aOptions: AndroidOptions(encryptedSharedPreferences: true),
+              final payoutState = Provider.of<PayoutState>(
+                context,
+                listen: false,
               );
-              await storage.write(
-                key: AppPreference.phoneNumber,
-                value: phoneNumber,
-              );
-
-              final (
-                success,
-                errorMessage,
-              ) = await PaymentService.initiatePayment(
-                bookId: bookId,
+              final success = await payoutState.requestPayout(
+                amountTzs: amount,
                 phoneNumber: phoneNumber,
               );
 
               if (success) {
                 AppUtil.showToastMessage(
-                  message: 'Payment initiated',
+                  message: 'Withdrawal request submitted successfully!',
                   isError: false,
                 );
-                // Refresh reader library to update UI immediately
                 if (mounted) {
-                  context.read<ReaderLibraryState>().getReaderLibrary();
                   Navigator.of(context).pop();
+                  _amountController.clear();
+                  _phoneNumberController.clear();
                 }
               } else {
-                AppUtil.showToastMessage(message: errorMessage, isError: true);
+                AppUtil.showToastMessage(
+                  message: payoutState.errorMessage.isNotEmpty
+                      ? payoutState.errorMessage
+                      : 'Withdrawal failed. Please try again.',
+                  isError: true,
+                );
               }
             } catch (e) {
               AppUtil.showToastMessage(
-                message: 'Payment failed. Please try again.',
+                message: 'Withdrawal failed. Please try again.',
                 isError: true,
               );
             }
@@ -82,7 +82,7 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
             // The sheet may have already been popped (success case), so
             // guard both setState calls.
             if (mounted) {
-              setState(() => _isPaymentProcessing = false);
+              setState(() => _isWithdrawing = false);
             }
             // setSheetState is safe to skip if the sheet is gone; wrap
             // defensively since StatefulBuilder has no `mounted` of its own.
@@ -104,7 +104,7 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
                   children: [
                     SizedBox(height: width / 20),
                     Text(
-                      'Enter Phone Number',
+                      'Withdraw Money',
                       style: TextStyle(
                         fontSize: width / 18,
                         fontWeight: FontWeight.w700,
@@ -115,12 +115,37 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: width / 20),
                       child: ShakeError(
+                        key: _amountShakeKey,
+                        child: InputField(
+                          hintText: 'Enter amount',
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          prefixIcon: const Icon(Iconsax.money_send),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              _amountShakeKey.currentState?.shake();
+                              return 'Please enter amount';
+                            }
+                            final amount = double.tryParse(value);
+                            if (amount == null || amount <= 0) {
+                              _amountShakeKey.currentState?.shake();
+                              return 'Please enter a valid amount';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: width / 22),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: width / 20),
+                      child: ShakeError(
                         key: _phoneNumberShakeKey,
                         child: InputField(
-                          hintText: 'Enter your phone number',
+                          hintText: 'Enter phone number',
                           controller: _phoneNumberController,
                           keyboardType: TextInputType.phone,
-                          prefixIcon: const Icon(Icons.phone_outlined),
+                          prefixIcon: const Icon(Iconsax.call),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               _phoneNumberShakeKey.currentState?.shake();
@@ -139,12 +164,12 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: ActionButton(
-                        text: 'Proceed to Pay',
+                        text: 'Withdraw',
                         onPressed: isSubmitting
                             ? null
                             : () async {
                                 if (_formKey.currentState!.validate()) {
-                                  await processPayment();
+                                  await processWithdrawal();
                                 }
                               },
                       ),
@@ -162,6 +187,7 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
 
   @override
   void dispose() {
+    _amountController.dispose();
     _phoneNumberController.dispose();
     super.dispose();
   }

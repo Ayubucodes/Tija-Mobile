@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/models/books_model.dart';
+import 'package:tija/services/review_service.dart';
 import 'package:tija/states/books_state.dart';
+import 'package:tija/utils/app_util.dart';
 
 mixin ReviewMixin<T extends StatefulWidget> on State<T> {
   int selectedRating = 3;
@@ -16,11 +18,38 @@ mixin ReviewMixin<T extends StatefulWidget> on State<T> {
 
   Future<void> submitReview(String bookId) async {
     FocusScope.of(context).unfocus();
+
+    if (reviewController.text.trim().isEmpty) {
+      AppUtil.showToastMessage(
+        isError: true,
+        message: 'Please enter your review comment',
+      );
+      return;
+    }
+
     setState(() => isSubmitting = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+
+    final result = await ReviewService.submitReview(
+      bookId: bookId,
+      rating: selectedRating.toString(),
+      comment: reviewController.text.trim(),
+    );
+
     if (mounted) {
       setState(() => isSubmitting = false);
-      Navigator.of(context).pop();
+
+      if (result != null) {
+        AppUtil.showToastMessage(
+          isError: false,
+          message: 'Review submitted successfully!',
+        );
+        Navigator.of(context).pop();
+      } else {
+        AppUtil.showToastMessage(
+          isError: true,
+          message: 'Failed to submit review. Please try again.',
+        );
+      }
     }
   }
 

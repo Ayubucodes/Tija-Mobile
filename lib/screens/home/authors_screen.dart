@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/loading_overlay.dart';
-import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
+import 'package:tija/mixins/author_mixin.dart';
 import 'package:tija/mixins/search_mixin.dart';
 import 'package:tija/models/author_model.dart';
-import 'package:tija/screens/home/author_detail_screen.dart';
 import 'package:tija/states/author_state.dart';
+import 'package:tija/widgets/empty_state.dart';
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -20,7 +20,8 @@ class AuthorsScreen extends StatefulWidget {
   State<AuthorsScreen> createState() => _AuthorsScreenState();
 }
 
-class _AuthorsScreenState extends State<AuthorsScreen> with SearchMixin {
+class _AuthorsScreenState extends State<AuthorsScreen>
+    with SearchMixin, AuthorMixin {
   @override
   void initState() {
     super.initState();
@@ -36,7 +37,10 @@ class _AuthorsScreenState extends State<AuthorsScreen> with SearchMixin {
 
     return Consumer<AuthorState>(
       builder: (_, authorState, __) => LoadingOverlay(
-        isVisible: authorState.isLoading || authorState.isDetailLoading,
+        isVisible:
+            authorState.isLoading ||
+            authorState.isDetailLoading ||
+            isNavigatingToAuthorDetail,
         child: Scaffold(
           backgroundColor: theme.primaryBackground,
           body: SafeArea(
@@ -160,37 +164,11 @@ class _AuthorsScreenState extends State<AuthorsScreen> with SearchMixin {
                   child: Consumer<AuthorState>(
                     builder: (context, authorState, _) {
                       if (authorState.isError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                authorState.errorMessage,
-                                style: TextStyle(
-                                  fontSize: width / 26,
-                                  color: theme.secondaryText,
-                                ),
-                              ),
-                              SizedBox(height: width / 22),
-                              ElevatedButton(
-                                onPressed: () => authorState.getAuthors(),
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        );
+                        return EmptyState(message: authorState.errorMessage);
                       }
 
                       if (authorState.authors.isEmpty) {
-                        return Center(
-                          child: Text(
-                            'No authors found',
-                            style: TextStyle(
-                              fontSize: width / 26,
-                              color: theme.secondaryText,
-                            ),
-                          ),
-                        );
+                        return EmptyState(message: 'No authors found');
                       }
 
                       // Filter authors based on search query
@@ -204,38 +182,33 @@ class _AuthorsScreenState extends State<AuthorsScreen> with SearchMixin {
                       }).toList();
 
                       if (filteredAuthors.isEmpty) {
-                        return Center(
-                          child: Text(
-                            'No authors match "${searchController.text}"',
-                            style: TextStyle(
-                              fontSize: width / 26,
-                              color: theme.secondaryText,
-                            ),
-                          ),
+                        return EmptyState(
+                          message:
+                              'No authors match "${searchController.text}"',
                         );
                       }
 
-                      return ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
-                        padding: EdgeInsets.fromLTRB(
-                          width / 22,
-                          width / 30,
-                          width / 22,
-                          width / 3.5,
-                        ),
-                        itemCount: filteredAuthors.length,
-                        separatorBuilder: (_, __) =>
-                            SizedBox(height: width / 30),
-                        itemBuilder: (_, i) => _AuthorRow(
-                          author: filteredAuthors[i],
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => AuthorDetailScreen(
-                                authorId: filteredAuthors[i].id,
-                              ),
-                            ),
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          await context.read<AuthorState>().getAuthors();
+                        },
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          padding: EdgeInsets.fromLTRB(
+                            width / 22,
+                            width / 30,
+                            width / 22,
+                            width / 3.5,
+                          ),
+                          itemCount: filteredAuthors.length,
+                          separatorBuilder: (_, __) =>
+                              SizedBox(height: width / 30),
+                          itemBuilder: (_, i) => _AuthorRow(
+                            author: filteredAuthors[i],
+                            onTap: () =>
+                                navigateToAuthorDetail(filteredAuthors[i].id),
                           ),
                         ),
                       );

@@ -401,10 +401,10 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
           return BookCard(
             title: book.title,
             author: book.author.fullName,
-            price: 'TZS ${book.priceTzs.toStringAsFixed(0)}',
-            imageUrl: book.coverImageUrl,
+            price: book.priceTzs,
+            imageUrl: book.coverImageUrl ?? '',
             width: width / 3.2,
-            imageHeight: width / 2.4,
+            // imageHeight: width / 2.4,
             onTap: () => navigateToBookDetail(book.id),
           );
         },

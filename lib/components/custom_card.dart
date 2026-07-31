@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:tija/constants/app_theme.dart';
+import 'package:tija/utils/app_util.dart';
 import 'package:tija/widgets/placeholder.dart';
 
 class BookCard extends StatelessWidget {
   final String title;
   final String author;
-  final String price;
+  final double price;
   final String imageUrl;
   final double width;
-  final double imageHeight;
   final VoidCallback? onTap;
 
   const BookCard({
@@ -18,40 +18,47 @@ class BookCard extends StatelessWidget {
     required this.price,
     required this.imageUrl,
     this.width = 130,
-    this.imageHeight = 170,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
         width: width,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            // Cover image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(screenWidth / 27),
-              child: imageUrl.startsWith('http')
-                  ? Image.network(
-                      imageUrl,
-                      width: width,
-                      height: imageHeight,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          PlaceholderCover(width: width, height: imageHeight),
-                    )
-                  : Image.asset(
-                      imageUrl,
-                      width: width,
-                      height: imageHeight,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          PlaceholderCover(width: width, height: imageHeight),
-                    ),
+            // Cover image - flexes to fill remaining space, never overflows
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(screenWidth / 27),
+                child: imageUrl.startsWith('http')
+                    ? Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => PlaceholderCover(
+                          width: width,
+                          height: double.infinity,
+                        ),
+                      )
+                    : Image.asset(
+                        imageUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => PlaceholderCover(
+                          width: width,
+                          height: double.infinity,
+                        ),
+                      ),
+              ),
             ),
             SizedBox(height: screenWidth / 45),
 
@@ -61,7 +68,7 @@ class BookCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: screenWidth / 28,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.of(context).primaryText,
               ),
@@ -74,7 +81,7 @@ class BookCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: screenWidth / 32,
                 fontWeight: FontWeight.w400,
                 color: AppTheme.of(context).secondaryText,
               ),
@@ -83,9 +90,11 @@ class BookCard extends StatelessWidget {
 
             // Price
             Text(
-              price,
+              AppUtil.formatMoney(price),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: screenWidth / 28,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.of(context).primaryText,
               ),

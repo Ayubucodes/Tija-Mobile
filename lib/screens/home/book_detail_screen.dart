@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/loading_overlay.dart';
+import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/mixins/book_detail_mixin.dart';
@@ -12,6 +13,8 @@ import 'package:tija/models/books_model.dart';
 import 'package:tija/screens/home/add_review_screen.dart';
 import 'package:tija/states/books_state.dart';
 import 'package:tija/states/reader_library_state.dart';
+import 'package:tija/utils/app_util.dart';
+import 'package:tija/widgets/empty_state.dart';
 import 'package:tija/widgets/placeholder.dart';
 
 // ---------------------------------------------------------------------------
@@ -37,16 +40,27 @@ class BookDetailScreen extends StatefulWidget {
 class _BookDetailScreenState extends State<BookDetailScreen>
     with SingleTickerProviderStateMixin, BookDetailController, PaymentMixin {
   late final TabController _tabController;
-  bool _isFavourite = false;
   String? _lastFetchedGenreId;
+  String? _lastFetchedReviewsBookId;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReaderLibraryState>().getReaderLibrary();
     });
+  }
+
+  void _onTabChanged() {
+    if (_tabController.index == 1) {
+      final book = context.read<BooksState>().bookDetail;
+      if (book != null && book.id != _lastFetchedReviewsBookId) {
+        _lastFetchedReviewsBookId = book.id;
+        context.read<BooksState>().onGetReviews(book.id);
+      }
+    }
   }
 
   void _fetchRelatedBooks(String genreId) {
@@ -58,8 +72,10 @@ class _BookDetailScreenState extends State<BookDetailScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     context.read<BooksState>().clearBookDetail();
+    context.read<BooksState>().clearReviews();
     super.dispose();
   }
 
@@ -73,17 +89,16 @@ class _BookDetailScreenState extends State<BookDetailScreen>
         builder: (context, booksState, _) {
           return LoadingOverlay(
             isVisible:
-                // booksState.isLoadingRelated ||
                 isPaymentProcessing ||
                 isNavigatingToReadScreen ||
                 isNavigatingToBookDetail,
+            // booksState.isLoadingReviews,
             child: Builder(
               builder: (context) {
                 if (booksState.isErrorDetail) {
                   return Center(
-                    child: Text(
-                      booksState.errorMessageDetail,
-                      style: TextStyle(color: theme.secondaryText),
+                    child: EmptyState(
+                      message: 'Book details will be displayed here',
                     ),
                   );
                 }
@@ -95,16 +110,23 @@ class _BookDetailScreenState extends State<BookDetailScreen>
 
                 final genre = book.genres.isNotEmpty
                     ? book.genres.first.name
-                    : 'Unknown';
+                    : '';
 
                 return Column(
                   children: [
                     _HeroHeader(
                       book: book,
                       genre: genre,
-                      isFavourite: _isFavourite,
-                      onFavouriteTap: () =>
-                          setState(() => _isFavourite = !_isFavourite),
+                      onRefreshTap: () async {
+                        await context
+                            .read<ReaderLibraryState>()
+                            .getReaderLibrary();
+                        // Show success toast message
+                        AppUtil.showToastMessage(
+                          message: 'Successfully refreshed',
+                          isError: false,
+                        );
+                      },
                       onBackTap: () => Navigator.of(context).pop(),
                       onReadBookTap: () => navigateToReadScreen(book.id),
                     ),
@@ -247,21 +269,20 @@ class _BuyNowBar extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Hero header — cover centered on top, details centered below
+// Hero header — cover on the left, genre / author / rating stacked on the
+// right (matches the reference layout).
 // ---------------------------------------------------------------------------
 class _HeroHeader extends StatelessWidget {
   final BookDetail book;
   final String genre;
-  final bool isFavourite;
-  final VoidCallback onFavouriteTap;
+  final VoidCallback onRefreshTap;
   final VoidCallback onBackTap;
   final VoidCallback onReadBookTap;
 
   const _HeroHeader({
     required this.book,
     required this.genre,
-    required this.isFavourite,
-    required this.onFavouriteTap,
+    required this.onRefreshTap,
     required this.onBackTap,
     required this.onReadBookTap,
   });
@@ -282,7 +303,7 @@ class _HeroHeader extends StatelessWidget {
             width / 28,
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Top nav row
               Row(
@@ -293,126 +314,153 @@ class _HeroHeader extends StatelessWidget {
                     onTap: onBackTap,
                     size: width / 10.5,
                   ),
-                  _CircleIconButton(
-                    icon: isFavourite ? Iconsax.heart5 : Iconsax.heart,
-                    iconColor: isFavourite ? Colors.red : null,
-                    onTap: onFavouriteTap,
-                  ),
+                  _CircleIconButton(icon: Iconsax.refresh, onTap: onRefreshTap),
                 ],
               ),
               SizedBox(height: width / 16),
 
-              // Centered book cover
-              Hero(
-                tag: 'book-cover-${book.title}',
-                child: GestureDetector(
-                  onTap: () {},
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(width / 22),
-                    child: Container(
-                      decoration: BoxDecoration(
+              // Cover on the left, details stacked on the right
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Book cover
+                  Hero(
+                    tag: 'book-cover-${book.title}',
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(width / 22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 24,
-                            offset: const Offset(0, 10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(width / 22),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 24,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Image.network(
-                        book.coverImageUrl,
-                        width: width / 2.0,
-                        height: width / 1.9,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => PlaceholderCover(
-                          width: width / 2.6,
-                          height: width / 1.9,
+                          child: book.coverImageUrl != null
+                              ? Image.network(
+                                  book.coverImageUrl!,
+                                  width: width / 2.6,
+                                  height: width / 1.9,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      PlaceholderCover(
+                                        width: width / 2.6,
+                                        height: width / 1.9,
+                                      ),
+                                )
+                              : PlaceholderCover(
+                                  width: width / 2.6,
+                                  height: width / 1.9,
+                                ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  SizedBox(width: width / 18),
+
+                  // Details column: title, genre badge, author, rating
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: width / 20),
+
+                        // Title
+                        Text(
+                          book.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: width / 20,
+                            fontWeight: FontWeight.w700,
+                            color: theme.primaryText,
+                          ),
+                        ),
+                        SizedBox(height: width / 28),
+
+                        // Genre badge
+                        if (genre.isNotEmpty)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: width / 22,
+                              vertical: width / 70,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.alternate,
+                              borderRadius: BorderRadius.circular(width / 18),
+                            ),
+                            child: Text(
+                              genre,
+                              style: TextStyle(
+                                fontSize: width / 30,
+                                fontWeight: FontWeight.w500,
+                                color: theme.secondaryText,
+                              ),
+                            ),
+                          ),
+                        SizedBox(height: width / 20),
+
+                        // Author row
+                        Row(
+                          children: [
+                            ClipOval(
+                              child: Container(
+                                width: width / 10,
+                                height: width / 10,
+                                color: AppColor.defaultSecondaryColor
+                                    .withValues(alpha: 0.2),
+                                child: Icon(
+                                  Iconsax.user,
+                                  size: width / 20,
+                                  color: AppColor.defaultSecondaryColor,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: width / 40),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    book.author.fullName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: width / 28,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.primaryText,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Author',
+                                    style: TextStyle(
+                                      fontSize: width / 33,
+                                      color: theme.secondaryText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: width / 20),
+
+                        // // Star rating
+                        // _StarRating(
+                        //   rating: book.rating,
+                        //   size: width / 24,
+                        // ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: width / 20),
-
-              // Title, centered
-              Text(
-                book.title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: width / 16,
-                  fontWeight: FontWeight.w700,
-                  color: theme.primaryText,
-                ),
-              ),
-              SizedBox(height: width / 60),
-
-              // // Genre badge, centered
-              // Container(
-              //   padding: EdgeInsets.symmetric(
-              //     horizontal: width / 22,
-              //     vertical: width / 70,
-              //   ),
-              //   decoration: BoxDecoration(
-              //     color: theme.inputFilledColor,
-              //     borderRadius: BorderRadius.circular(width / 18),
-              //   ),
-              //   child: Text(
-              //     genre,
-              //     style: TextStyle(
-              //       fontSize: width / 30,
-              //       fontWeight: FontWeight.w500,
-              //       color: theme.secondaryText,
-              //     ),
-              //   ),
-              // ),
-              // SizedBox(height: width / 18),
-
-              // // Author row, centered
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     ClipOval(
-              //       child: Container(
-              //         width: width / 10,
-              //         height: width / 10,
-              //         color: AppColor.defaultSecondaryColor.withValues(
-              //           alpha: 0.2,
-              //         ),
-              //         child: Icon(
-              //           Iconsax.user,
-              //           size: width / 20,
-              //           color: AppColor.defaultSecondaryColor,
-              //         ),
-              //       ),
-              //     ),
-              //     SizedBox(width: width / 40),
-              //     Column(
-              //       crossAxisAlignment: CrossAxisAlignment.start,
-              //       mainAxisSize: MainAxisSize.min,
-              //       children: [
-              //         Text(
-              //           book.author.fullName,
-              //           style: TextStyle(
-              //             fontSize: width / 28,
-              //             fontWeight: FontWeight.w600,
-              //             color: theme.primaryText,
-              //           ),
-              //         ),
-              //         Text(
-              //           'Author',
-              //           style: TextStyle(
-              //             fontSize: width / 33,
-              //             color: theme.secondaryText,
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ],
-              // ),
             ],
           ),
         ),
@@ -498,13 +546,10 @@ class _AboutTab extends StatelessWidget {
             ),
           ),
           SizedBox(height: width / 36),
-          Text(
-            book.description,
-            style: TextStyle(
-              fontSize: width / 26,
-              height: 1.6,
-              color: theme.secondaryText,
-            ),
+          _DescriptionWidget(
+            description: book.description,
+            width: width,
+            theme: theme,
           ),
           SizedBox(height: width / 13),
           Row(
@@ -550,10 +595,19 @@ class _AboutTab extends StatelessWidget {
                 });
               }
 
-              // Only show loading if we're fetching for this specific genre
               if (booksState.isLoadingRelated &&
                   genreId == lastFetchedGenreId) {
-                return SizedBox(height: width / 1.6);
+                return SizedBox(
+                  height: width / 2.6,
+                  child: Center(
+                    child: Image.asset(
+                      AppAssets.LOADING_GIF,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                );
               }
 
               final relatedBooks = booksState.relatedBooks
@@ -563,8 +617,12 @@ class _AboutTab extends StatelessWidget {
 
               if (relatedBooks.isEmpty && !booksState.isLoadingRelated) {
                 return SizedBox(
-                  height: width / 1.6,
-                  child: Center(child: Text('No related books found')),
+                  height: width / 2.6,
+                  child: Center(
+                    child: EmptyState(
+                      message: 'Most related books will be displayed here',
+                    ),
+                  ),
                 );
               }
 
@@ -601,67 +659,240 @@ class _ReviewsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
     final width = MediaQuery.of(context).size.width;
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
-        width / 20,
-        width / 16,
-        width / 20,
-        width / 12,
+    return Consumer<BooksState>(
+      builder: (context, booksState, _) {
+        // Fetch reviews when tab is first accessed
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!booksState.isLoadingReviews && booksState.reviews == null) {
+            booksState.onGetReviews(book.id);
+          }
+        });
+
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            width / 20,
+            width / 16,
+            width / 20,
+            width / 12,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Reviews',
+                    style: TextStyle(
+                      fontSize: width / 24,
+                      fontWeight: FontWeight.w600,
+                      color: theme.primaryText,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AddReviewScreen(
+                          book: BookDetailArgs(bookId: book.id),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Iconsax.edit,
+                          size: width / 22,
+                          color: AppColor.defaultSecondaryColor,
+                        ),
+                        SizedBox(width: width / 90),
+                        Text(
+                          'Add Review',
+                          style: TextStyle(
+                            fontSize: width / 28,
+                            fontWeight: FontWeight.w600,
+                            color: AppColor.defaultSecondaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: width / 22),
+
+              // Loading state
+              if (booksState.isLoadingReviews)
+                SizedBox(
+                  height: width / 2,
+                  child: Center(
+                    child: Image.asset(
+                      AppAssets.LOADING_GIF,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+
+              // Error state
+              if (booksState.isErrorReviews && !booksState.isLoadingReviews)
+                SizedBox(
+                  height: width / 2,
+                  child: Center(
+                    child: EmptyState(
+                      message: booksState.errorMessageReviews.isNotEmpty
+                          ? booksState.errorMessageReviews
+                          : 'Failed to load reviews',
+                    ),
+                  ),
+                ),
+
+              // Empty state
+              if (!booksState.isLoadingReviews &&
+                  !booksState.isErrorReviews &&
+                  booksState.reviewItems.isEmpty)
+                SizedBox(
+                  height: width / 2,
+                  child: Center(
+                    child: EmptyState(
+                      message: 'Most reviews will be displayed here',
+                      iconSize: width / 16,
+                    ),
+                  ),
+                ),
+
+              // Reviews list
+              if (!booksState.isLoadingReviews &&
+                  !booksState.isErrorReviews &&
+                  booksState.reviewItems.isNotEmpty)
+                Column(
+                  children: [
+                    ...booksState.reviewItems.map(
+                      (review) => _ReviewCard(review: review),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Review card
+// ---------------------------------------------------------------------------
+class _ReviewCard extends StatelessWidget {
+  final Review review;
+  const _ReviewCard({required this.review});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: width / 22),
+      padding: EdgeInsets.all(width / 22),
+      decoration: BoxDecoration(
+        color: theme.secondaryBackground,
+        borderRadius: BorderRadius.circular(width / 27),
+        border: Border.all(color: theme.lineColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Reviewer info and rating
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Reviews',
-                style: TextStyle(
-                  fontSize: width / 24,
-                  fontWeight: FontWeight.w600,
-                  color: theme.primaryText,
-                ),
-              ),
-              GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        AddReviewScreen(book: BookDetailArgs(bookId: book.id)),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Iconsax.edit,
-                      size: width / 22,
-                      color: AppColor.defaultSecondaryColor,
-                    ),
-                    SizedBox(width: width / 90),
-                    Text(
-                      'Add Review',
-                      style: TextStyle(
-                        fontSize: width / 28,
-                        fontWeight: FontWeight.w600,
+              // Reviewer name
+              Row(
+                children: [
+                  ClipOval(
+                    child: Container(
+                      width: width / 12,
+                      height: width / 12,
+                      color: AppColor.defaultSecondaryColor.withValues(
+                        alpha: 0.2,
+                      ),
+                      child: Icon(
+                        Iconsax.user,
+                        size: width / 24,
                         color: AppColor.defaultSecondaryColor,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: width / 36),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        review.reviewerName,
+                        style: TextStyle(
+                          fontSize: width / 28,
+                          fontWeight: FontWeight.w600,
+                          color: theme.primaryText,
+                        ),
+                      ),
+                      Text(
+                        _formatDate(review.createdAt),
+                        style: TextStyle(
+                          fontSize: width / 34,
+                          color: theme.secondaryText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // Star rating
+              Row(
+                children: List.generate(5, (i) {
+                  return Icon(
+                    i < review.rating
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: const Color(0xFFFFB800),
+                    size: width / 28,
+                  );
+                }),
               ),
             ],
           ),
-          SizedBox(height: width / 22),
+          SizedBox(height: width / 36),
+
+          // Comment
           Text(
-            'No reviews yet',
+            review.comment,
             style: TextStyle(
               fontSize: width / 26,
-              color: AppColor.defaultSecondaryColor,
+              height: 1.5,
+              color: theme.secondaryText,
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      return '${(difference.inDays / 7).floor()} weeks ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }
 
@@ -696,7 +927,7 @@ class _RelatedBookCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(width / 30),
                   child: Image.network(
-                    book.coverImageUrl,
+                    book.coverImageUrl ?? '',
                     width: width / 3,
                     height: width / 2.5,
                     fit: BoxFit.cover,
@@ -776,15 +1007,9 @@ class _StarRating extends StatelessWidget {
 class _CircleIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
-  final Color? iconColor;
   final double size;
 
-  const _CircleIconButton({
-    required this.icon,
-    this.onTap,
-    this.iconColor,
-    this.size = 25,
-  });
+  const _CircleIconButton({required this.icon, this.onTap, this.size = 25});
 
   @override
   Widget build(BuildContext context) {
@@ -799,8 +1024,92 @@ class _CircleIconButton extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: theme.lineColor, width: 1.5),
         ),
-        child: Icon(icon, size: size, color: iconColor ?? theme.primaryText),
+        child: Icon(icon, size: size, color: theme.primaryText),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Description widget with see more/see less
+// ---------------------------------------------------------------------------
+class _DescriptionWidget extends StatefulWidget {
+  final String description;
+  final double width;
+  final dynamic theme;
+
+  const _DescriptionWidget({
+    required this.description,
+    required this.width,
+    required this.theme,
+  });
+
+  @override
+  State<_DescriptionWidget> createState() => _DescriptionWidgetState();
+}
+
+class _DescriptionWidgetState extends State<_DescriptionWidget> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final words = widget.description.split(' ');
+    final hasMoreThan37Words = words.length > 37;
+    final shouldShowToggle = hasMoreThan37Words;
+
+    if (!shouldShowToggle) {
+      return Text(
+        widget.description,
+        style: TextStyle(
+          fontSize: widget.width / 26,
+          height: 1.6,
+          color: widget.theme.secondaryText,
+        ),
+      );
+    }
+
+    final displayedText = _isExpanded
+        ? widget.description
+        : words.take(37).join(' ') + '...';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          displayedText,
+          style: TextStyle(
+            fontSize: widget.width / 26,
+            height: 1.6,
+            color: widget.theme.secondaryText,
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _isExpanded ? 'See less' : 'See more',
+                style: TextStyle(
+                  fontSize: widget.width / 28,
+                  fontWeight: FontWeight.w600,
+                  color: AppColor.defaultSecondaryColor,
+                ),
+              ),
+              SizedBox(width: widget.width / 90),
+              Icon(
+                _isExpanded ? Iconsax.arrow_up_2 : Iconsax.arrow_down_2,
+                size: widget.width / 28,
+                color: AppColor.defaultSecondaryColor,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

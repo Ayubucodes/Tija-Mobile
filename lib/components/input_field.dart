@@ -4,7 +4,6 @@ import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 
 class InputField extends StatefulWidget {
-  final String label;
   final bool isReadOnly;
   final String hintText;
   final TextEditingController? controller;
@@ -15,7 +14,6 @@ class InputField extends StatefulWidget {
 
   const InputField({
     super.key,
-    this.label = '',
     required this.hintText,
     this.controller,
     this.isPassword = false,
@@ -38,16 +36,6 @@ class _InputFieldState extends State<InputField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: theme.primaryText,
-            letterSpacing: 0.1,
-          ),
-        ),
-        const SizedBox(height: 8),
         TextFormField(
           readOnly: widget.isReadOnly,
           controller: widget.controller,

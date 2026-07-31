@@ -79,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           ],
                         ),
                       ),
-                      SizedBox(height: width / 36),
+                      SizedBox(height: width / 16),
                       // Name field
                       ShakeError(
                         key: nameShakeKey,
@@ -99,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           },
                         ),
                       ),
-                      SizedBox(height: width / 22),
+                      SizedBox(height: width / 12),
 
                       // Email field
                       ShakeError(
@@ -114,7 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           validator: validateEmail,
                         ),
                       ),
-                      SizedBox(height: width / 22),
+                      SizedBox(height: width / 12),
 
                       // Phone number field
                       ShakeError(
@@ -135,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           },
                         ),
                       ),
-                      SizedBox(height: width / 22),
+                      SizedBox(height: width / 12),
                       ShakeError(
                         key: passwordShakeKey,
                         duration: const Duration(milliseconds: 500),
@@ -148,7 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                           validator: validatePassword,
                         ),
                       ),
-                      SizedBox(height: width / 11),
+                      SizedBox(height: width / 12),
 
                       // Sign Up button
                       ActionButton(text: 'Sign Up', onPressed: handleSignUp),

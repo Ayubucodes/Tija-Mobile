@@ -212,6 +212,55 @@ class BooksService {
     }
   }
 
+  static Future<BookDetail?> updateBook({
+    required String bookId,
+    required String title,
+    required String description,
+    required double priceTzs,
+    required String coverImageUrl,
+    required String bookFileUrl,
+    required int totalPages,
+    required List<String> genreIds,
+  }) async {
+    try {
+      final token = await _getAccessToken();
+      final baseUrl = await AppApi.updateBookFullUrl(bookId);
+      final uri = Uri.parse(baseUrl);
+
+      final body = jsonEncode({
+        'title': title,
+        'description': description,
+        'priceTzs': priceTzs.toString(),
+        'coverImageUrl': coverImageUrl,
+        'bookFileUrl': bookFileUrl,
+        'totalPages': totalPages.toString(),
+        'genreIds': genreIds,
+      });
+
+      final headers = {'Content-Type': 'application/json'};
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.put(uri, headers: headers, body: body);
+
+      final dataResponse = jsonDecode(response.body);
+      print('BooksService UPDATE BOOK RESPONSE: $dataResponse');
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        if (dataResponse is Map<String, dynamic>) {
+          return BookDetail.fromJson(dataResponse);
+        }
+      }
+
+      return null;
+    } catch (e, stack) {
+      print('BooksService UPDATE BOOK ERROR: $e');
+      print('BooksService UPDATE BOOK STACK: $stack');
+      return null;
+    }
+  }
+
   static Future<Map<String, dynamic>?> uploadBookFile(
     String bookId,
     File file,
@@ -228,11 +277,24 @@ class BooksService {
 
       final fileStream = http.ByteStream(file.openRead());
       final fileLength = await file.length();
+      final extension = file.path.split('.').last.toLowerCase();
+
+      // Set content type based on file extension
+      String contentType;
+      switch (extension) {
+        case 'pdf':
+          contentType = 'application/pdf';
+          break;
+        default:
+          contentType = 'application/pdf'; // Default to pdf
+      }
+
       final multipartFile = http.MultipartFile(
         'File',
         fileStream,
         fileLength,
         filename: file.path.split('/').last,
+        contentType: http.MediaType.parse(contentType),
       );
       request.files.add(multipartFile);
 
@@ -245,6 +307,11 @@ class BooksService {
         if (dataResponse is Map<String, dynamic>) {
           return dataResponse;
         }
+      }
+
+      // Return error response for non-2xx status codes
+      if (dataResponse is Map<String, dynamic>) {
+        return dataResponse;
       }
 
       return null;
@@ -268,11 +335,28 @@ class BooksService {
 
       final fileStream = http.ByteStream(file.openRead());
       final fileLength = await file.length();
+      final extension = file.path.split('.').last.toLowerCase();
+
+      // Set content type based on file extension
+      String contentType;
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case 'png':
+          contentType = 'image/png';
+          break;
+        default:
+          contentType = 'image/jpeg'; // Default to jpeg
+      }
+
       final multipartFile = http.MultipartFile(
         'File',
         fileStream,
         fileLength,
         filename: file.path.split('/').last,
+        contentType: http.MediaType.parse(contentType),
       );
       request.files.add(multipartFile);
 
@@ -285,6 +369,11 @@ class BooksService {
         if (dataResponse is Map<String, dynamic>) {
           return dataResponse;
         }
+      }
+
+      // Return error response for non-2xx status codes
+      if (dataResponse is Map<String, dynamic>) {
+        return dataResponse;
       }
 
       return null;
@@ -324,6 +413,100 @@ class BooksService {
       print('BooksService READER LIBRARY ERROR: $e');
       print('BooksService READER LIBRARY STACK: $stack');
       return null;
+    }
+  }
+
+  static Future<Books?> getAuthorBooks() async {
+    try {
+      final token = await _getAccessToken();
+      final baseUrl = await AppApi.authorBooksFullUrl;
+      final uri = Uri.parse(baseUrl);
+
+      final headers = {'Content-Type': 'application/json'};
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.get(uri, headers: headers);
+
+      final dataResponse = jsonDecode(response.body);
+      print('BooksService AUTHOR BOOKS RESPONSE: $dataResponse');
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        if (dataResponse is Map<String, dynamic>) {
+          if (dataResponse.containsKey('items')) {
+            return Books.fromJson(dataResponse);
+          }
+        }
+      }
+
+      return null;
+    } catch (e, stack) {
+      print('BooksService AUTHOR BOOKS ERROR: $e');
+      print('BooksService AUTHOR BOOKS STACK: $stack');
+      return null;
+    }
+  }
+
+  static Future<bool> deleteBook(String bookId) async {
+    try {
+      final token = await _getAccessToken();
+      final baseUrl = await AppApi.deleteBookFullUrl(bookId);
+      final uri = Uri.parse(baseUrl);
+
+      final headers = {'Content-Type': 'application/json'};
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.delete(uri, headers: headers);
+
+      print('BooksService DELETE BOOK RESPONSE: ${response.statusCode}');
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        return true;
+      }
+
+      return false;
+    } catch (e, stack) {
+      print('BooksService DELETE BOOK ERROR: $e');
+      print('BooksService DELETE BOOK STACK: $stack');
+      return false;
+    }
+  }
+
+  static Future<bool> submitBookForReview(String bookId) async {
+    try {
+      final token = await _getAccessToken();
+      final baseUrl = await AppApi.submitBookFullUrl(bookId);
+      final uri = Uri.parse(baseUrl);
+
+      final headers = {'Content-Type': 'application/json'};
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.post(uri, headers: headers);
+
+      // Only try to decode JSON if response body is not empty
+      if (response.body.isNotEmpty) {
+        final dataResponse = jsonDecode(response.body);
+        print('BooksService SUBMIT BOOK RESPONSE: $dataResponse');
+      } else {
+        print(
+          'BooksService SUBMIT BOOK RESPONSE: Status ${response.statusCode} (empty body)',
+        );
+      }
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        return true;
+      }
+
+      return false;
+    } catch (e, stack) {
+      print('BooksService SUBMIT BOOK ERROR: $e');
+      print('BooksService SUBMIT BOOK STACK: $stack');
+      return false;
     }
   }
 }

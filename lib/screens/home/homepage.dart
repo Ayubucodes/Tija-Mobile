@@ -12,6 +12,7 @@ import 'package:tija/screens/home/book_detail_screen.dart';
 import 'package:tija/screens/home/more_books_screen.dart';
 import 'package:tija/states/books_state.dart';
 import 'package:tija/widgets/animated_text.dart';
+import 'package:tija/widgets/empty_state.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -200,16 +201,12 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                               return SizedBox(
                                 height: width / 1.5,
                                 child: Center(
-                                  child: Text(
-                                    _searchQuery.isNotEmpty
-                                        ? 'No books match "$_searchQuery"'
+                                  child: EmptyState(
+                                    message: _searchQuery.isNotEmpty
+                                        ? 'Please No books match "$_searchQuery"'
                                         : (booksState.isError
                                               ? booksState.errorMessage
-                                              : 'No books available'),
-                                    style: TextStyle(
-                                      fontSize: width / 28,
-                                      color: AppTheme.of(context).secondaryText,
-                                    ),
+                                              : 'Please No books available'),
                                   ),
                                 ),
                               );
@@ -231,8 +228,8 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                                   final item = items[i];
                                   final title = item.title;
                                   final author = item.author.fullName;
-                                  final price = 'Tsh ${item.priceTzs}';
-                                  final imageUrl = item.coverImageUrl;
+                                  final price = item.priceTzs;
+                                  final imageUrl = item.coverImageUrl ?? '';
                                   return Center(
                                     child: BookCard(
                                       title: title,
@@ -274,7 +271,10 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                               );
                             }
 
-                            if (items.isEmpty) return const SizedBox.shrink();
+                            if (items.isEmpty)
+                              return EmptyState(
+                                message: 'Popular Books will be displayed here',
+                              );
 
                             return SizedBox(
                               height: width / 1.6,
@@ -292,8 +292,8 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                                   final item = items[i];
                                   final title = item.title;
                                   final author = item.author.fullName;
-                                  final price = 'Tsh ${item.priceTzs}';
-                                  final imageUrl = item.coverImageUrl;
+                                  final price = item.priceTzs;
+                                  final imageUrl = item.coverImageUrl ?? '';
                                   return Center(
                                     child: BookCard(
                                       title: title,
@@ -301,7 +301,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                                       price: price,
                                       imageUrl: imageUrl,
                                       width: width / 2.8,
-                                      imageHeight: width / 2.2,
+                                      // imageHeight: width / 2.2,
                                       onTap: () =>
                                           navigateToBookDetail(item.id),
                                     ),

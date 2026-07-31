@@ -9,6 +9,7 @@ import 'package:tija/mixins/search_mixin.dart';
 import 'package:tija/models/books_model.dart';
 import 'package:tija/screens/home/book_detail_screen.dart';
 import 'package:tija/states/books_state.dart';
+import 'package:tija/widgets/empty_state.dart';
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -68,10 +69,10 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
                         ),
                       ),
                     ),
-                    SizedBox(width: width / 38),
                     Expanded(
                       child: Text(
                         'Books',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: width / 22,
                           fontWeight: FontWeight.w700,
@@ -162,38 +163,11 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
                     }
 
                     if (booksState.isError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              booksState.errorMessage,
-                              style: TextStyle(
-                                fontSize: width / 26,
-                                color: theme.secondaryText,
-                              ),
-                            ),
-                            SizedBox(height: width / 22),
-                            ElevatedButton(
-                              onPressed: () =>
-                                  booksState.onGetBooks(pageSize: 50),
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      );
+                      return EmptyState(message: booksState.errorMessage);
                     }
 
                     if (booksState.items.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No books found',
-                          style: TextStyle(
-                            fontSize: width / 26,
-                            color: theme.secondaryText,
-                          ),
-                        ),
-                      );
+                      return EmptyState(message: 'No books found');
                     }
 
                     // Filter books based on search query
@@ -206,14 +180,8 @@ class _MoreBooksScreenState extends State<MoreBooksScreen> with SearchMixin {
                     }).toList();
 
                     if (filteredBooks.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No books match "${searchController.text}"',
-                          style: TextStyle(
-                            fontSize: width / 26,
-                            color: theme.secondaryText,
-                          ),
-                        ),
+                      return EmptyState(
+                        message: 'No books match "${searchController.text}"',
                       );
                     }
 
@@ -274,7 +242,7 @@ class _BookCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(width / 30),
               child: Image.network(
-                book.coverImageUrl,
+                book.coverImageUrl ?? '',
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _buildDefaultCover(width),

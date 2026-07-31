@@ -21,8 +21,35 @@ mixin BookDetailController<T extends StatefulWidget> on State<T> {
     final readerState = context.read<ReaderState>();
 
     await readerState.openBook(bookId);
+
+    if (readerState.isError) {
+      if (mounted) {
+        setState(() => isNavigatingToReadScreen = false);
+      }
+      AppUtil.showToastMessage(
+        isError: true,
+        message: readerState.errorMessage.isNotEmpty
+            ? readerState.errorMessage
+            : 'Failed to open book',
+      );
+      return;
+    }
+
     if (readerState.readerResponse != null) {
       await readerState.decryptBook();
+    }
+
+    if (readerState.isError) {
+      if (mounted) {
+        setState(() => isNavigatingToReadScreen = false);
+      }
+      AppUtil.showToastMessage(
+        isError: true,
+        message: readerState.errorMessage.isNotEmpty
+            ? readerState.errorMessage
+            : 'Failed to open book',
+      );
+      return;
     }
 
     if (mounted) {
@@ -42,6 +69,7 @@ mixin BookDetailController<T extends StatefulWidget> on State<T> {
     if (genreId != null) {
       await context.read<BooksState>().onGetRelatedBooks(genreId);
     }
+    await context.read<BooksState>().onGetReviews(bookId);
     if (mounted) {
       setState(() => isNavigatingToBookDetail = false);
       Navigator.of(context).push(

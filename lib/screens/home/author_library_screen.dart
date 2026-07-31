@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/loading_overlay.dart';
-import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
-import 'package:tija/models/reader_library_model.dart';
+import 'package:tija/models/books_model.dart';
 import 'package:tija/screens/home/book_detail_screen.dart';
+import 'package:tija/states/author_state.dart';
 import 'package:tija/states/books_state.dart';
-import 'package:tija/states/reader_library_state.dart';
 import 'package:tija/utils/app_util.dart';
 import 'package:tija/widgets/empty_state.dart';
 import 'package:tija/widgets/placeholder.dart';
 
-class ReaderLibraryScreen extends StatefulWidget {
-  const ReaderLibraryScreen({super.key});
+class AuthorLibraryScreen extends StatefulWidget {
+  const AuthorLibraryScreen({super.key});
 
   @override
-  State<ReaderLibraryScreen> createState() => _ReaderLibraryScreenState();
+  State<AuthorLibraryScreen> createState() => _AuthorLibraryScreenState();
 }
 
-class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
+class _AuthorLibraryScreenState extends State<AuthorLibraryScreen> {
   bool _isNavigating = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReaderLibraryState>().getReaderLibrary();
+      context.read<BooksState>().getAuthorBooks();
     });
   }
 
@@ -35,6 +35,7 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
     setState(() => _isNavigating = true);
     await context.read<BooksState>().onGetBookById(bookId);
     if (bookState.isErrorDetail) {
+      setState(() => _isNavigating = false);
       AppUtil.showToastMessage(
         isError: true,
         message: 'failed to load books details',
@@ -52,13 +53,79 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
     }
   }
 
+  // ── Send draft book to review ─────────────────────────────────────────
+  Future<void> sendBookToReview(String bookId) async {
+    setState(() => _isNavigating = true);
+    await context.read<BooksState>().submitBookForReview(bookId);
+    if (!mounted) return;
+    setState(() => _isNavigating = false);
+    if (context.read<BooksState>().isSubmitBookError) {
+      AppUtil.showToastMessage(
+        isError: true,
+        message: context.read<BooksState>().submitBookErrorMessage.isNotEmpty
+            ? context.read<BooksState>().submitBookErrorMessage
+            : 'Failed to send book for review',
+      );
+    } else {
+      AppUtil.showToastMessage(isError: false, message: 'Book sent for review');
+      // Refresh the author books list
+      context.read<BooksState>().getAuthorBooks();
+      // Refresh the author dashboard data
+      // context.read<AuthorState>().getAuthorDashboard();
+    }
+  }
+
+  // ── Delete draft book ───────────────────────────────────────────────
+  Future<void> deleteDraftBook(String bookId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete draft'),
+        content: const Text(
+          'Are you sure you want to delete this draft book? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isNavigating = true);
+    await context.read<BooksState>().deleteBook(bookId);
+    if (!mounted) return;
+    setState(() => _isNavigating = false);
+    if (context.read<BooksState>().isDeleteBookError) {
+      AppUtil.showToastMessage(
+        isError: true,
+        message: context.read<BooksState>().deleteBookErrorMessage.isNotEmpty
+            ? context.read<BooksState>().deleteBookErrorMessage
+            : 'Failed to delete draft',
+      );
+    } else {
+      AppUtil.showToastMessage(isError: false, message: 'Draft deleted');
+      // Refresh the author books list
+      context.read<BooksState>().getAuthorBooks();
+      // Refresh the author dashboard data
+      context.read<AuthorState>().getAuthorDashboard();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
     final width = MediaQuery.of(context).size.width;
 
-    return Consumer<ReaderLibraryState>(
-      builder: (_, libraryState, __) => LoadingOverlay(
+    return Consumer<BooksState>(
+      builder: (_, booksState, __) => LoadingOverlay(
         isVisible: _isNavigating,
         child: Scaffold(
           backgroundColor: theme.primaryBackground,
@@ -92,7 +159,7 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
                                   color: theme.secondaryBackground,
                                 ),
                                 child: Icon(
-                                  Icons.chevron_left_rounded,
+                                  Iconsax.arrow_left_2,
                                   color: theme.primaryText,
                                   size: width / 16,
                                 ),
@@ -100,7 +167,7 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                'My Library',
+                                'My Books',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: width / 22,
@@ -122,14 +189,12 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
 
                 // ── Books list ───────────────────────────────────────────────
                 Expanded(
-                  child: Consumer<ReaderLibraryState>(
-                    builder: (context, libraryState, _) {
-                      if (libraryState.isError) {
-                        return EmptyState(message: libraryState.errorMessage);
-                      }
-
-                      if (libraryState.books.isEmpty) {
-                        return EmptyState(message: 'No books in your library');
+                  child: Consumer<BooksState>(
+                    builder: (context, booksState, _) {
+                      if (booksState.authorBooksItems.isEmpty) {
+                        return EmptyState(
+                          message: "Most author's books will be displayed here",
+                        );
                       }
 
                       return Padding(
@@ -141,21 +206,27 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
                         ),
                         child: RefreshIndicator(
                           onRefresh: () async {
-                            await context
-                                .read<ReaderLibraryState>()
-                                .getReaderLibrary();
+                            await context.read<BooksState>().getAuthorBooks();
                           },
                           child: ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(
                               parent: BouncingScrollPhysics(),
                             ),
                             padding: EdgeInsets.only(bottom: width / 12),
-                            itemCount: libraryState.books.length,
+                            itemCount: booksState.authorBooksItems.length,
                             itemBuilder: (context, index) {
-                              final book = libraryState.books[index];
-                              return _LibraryBookCard(
+                              final book = booksState.authorBooksItems[index];
+                              final isDraft =
+                                  book.status.toLowerCase() == 'draft';
+                              return _AuthorBookCard(
                                 book: book,
-                                onTap: () => navigateToBookDetail(book.bookId),
+                                onTap: () => navigateToBookDetail(book.id),
+                                onSendToReview: isDraft
+                                    ? () => sendBookToReview(book.id)
+                                    : null,
+                                onDelete: isDraft
+                                    ? () => deleteDraftBook(book.id)
+                                    : null,
                               );
                             },
                           ),
@@ -174,13 +245,20 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Library book card
+// Author book card
 // ---------------------------------------------------------------------------
-class _LibraryBookCard extends StatelessWidget {
-  final ReaderLibraryBook book;
+class _AuthorBookCard extends StatelessWidget {
+  final Item book;
   final VoidCallback onTap;
+  final VoidCallback? onSendToReview;
+  final VoidCallback? onDelete;
 
-  const _LibraryBookCard({required this.book, required this.onTap});
+  const _AuthorBookCard({
+    required this.book,
+    required this.onTap,
+    this.onSendToReview,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +288,8 @@ class _LibraryBookCard extends StatelessWidget {
                 topLeft: Radius.circular(width / 27),
                 bottomLeft: Radius.circular(width / 27),
               ),
-              child: book.coverImageUrl != null
+              child:
+                  book.coverImageUrl != null && book.coverImageUrl!.isNotEmpty
                   ? Image.network(
                       book.coverImageUrl!,
                       width: width / 3.5,
@@ -251,7 +330,7 @@ class _LibraryBookCard extends StatelessWidget {
                           ),
                           SizedBox(height: width / 70),
                           Text(
-                            book.authorName,
+                            book.author.fullName,
                             style: TextStyle(
                               fontSize: width / 30,
                               color: theme.secondaryText,
@@ -270,8 +349,47 @@ class _LibraryBookCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (book.progressPercentage != null)
-                        _ProgressBar(progress: book.progressPercentage!),
+                      // Status badge + draft actions (send to review / delete)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _StatusBadge(status: book.status),
+                          if (onSendToReview != null || onDelete != null)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (onSendToReview != null)
+                                  IconButton(
+                                    icon: Icon(
+                                      Iconsax.send_2,
+                                      color: AppColor.defaultSecondaryColor,
+                                      size: width / 22,
+                                    ),
+                                    tooltip: 'Send for review',
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: onSendToReview,
+                                  ),
+                                if (onSendToReview != null && onDelete != null)
+                                  SizedBox(width: width / 45),
+                                if (onDelete != null)
+                                  IconButton(
+                                    icon: Icon(
+                                      Iconsax.trash,
+                                      color: Colors.red,
+                                      size: width / 22,
+                                    ),
+                                    tooltip: 'Delete draft',
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: onDelete,
+                                  ),
+                              ],
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -285,63 +403,50 @@ class _LibraryBookCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Progress bar
+// Status badge
 // ---------------------------------------------------------------------------
-class _ProgressBar extends StatelessWidget {
-  final double progress;
+class _StatusBadge extends StatelessWidget {
+  final String status;
 
-  const _ProgressBar({required this.progress});
+  const _StatusBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final theme = AppTheme.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Progress',
-              style: TextStyle(
-                fontSize: width / 32,
-                color: theme.secondaryText,
-              ),
-            ),
-            Text(
-              '${(progress * 100).toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontSize: width / 32,
-                color: AppColor.defaultSecondaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+    Color badgeColor;
+    switch (status.toLowerCase()) {
+      case 'published':
+        badgeColor = Colors.green;
+        break;
+      case 'draft':
+        badgeColor = Colors.orange;
+        break;
+      case 'pending':
+        badgeColor = Colors.blue;
+        break;
+      default:
+        badgeColor = Colors.grey;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: width / 30,
+        vertical: width / 90,
+      ),
+      decoration: BoxDecoration(
+        color: badgeColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(width / 45),
+        border: Border.all(color: badgeColor.withOpacity(0.3)),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          fontSize: width / 32,
+          color: badgeColor,
+          fontWeight: FontWeight.w600,
         ),
-        SizedBox(height: width / 90),
-        Container(
-          height: width / 90,
-          decoration: BoxDecoration(
-            color: theme.secondaryBackground,
-            borderRadius: BorderRadius.circular(width / 90),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(width / 90),
-            child: FractionallySizedBox(
-              widthFactor: progress,
-              alignment: Alignment.centerLeft,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColor.defaultSecondaryColor,
-                  borderRadius: BorderRadius.circular(width / 90),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:tija/models/reader_model.dart';
 import 'package:tija/services/reader_service.dart';
 
 class ReaderState extends ChangeNotifier {
-
   ReaderResponse? _readerResponse;
   Uint8List? _pdfBytes;
   bool _isLoading = false;
@@ -29,8 +28,27 @@ class ReaderState extends ChangeNotifier {
       final result = await ReaderService.openBook(bookId);
 
       if (result != null) {
-        _readerResponse = result;
-        _isError = false;
+        // Check if response contains error (validation error from server)
+        if (result.containsKey('detail') && result['detail'] is String) {
+          _isError = true;
+          _errorMessage = result['detail'].toString();
+        } else if (result.containsKey('title') &&
+            result.containsKey('status')) {
+          // Check if it's an error response with title and status
+          if (result['status'] != 200 && result['status'] != 201) {
+            _isError = true;
+            _errorMessage =
+                result['detail']?.toString() ??
+                result['title']?.toString() ??
+                'Failed to open book.';
+          } else {
+            _readerResponse = ReaderResponse.fromJson(result);
+            _isError = false;
+          }
+        } else {
+          _readerResponse = ReaderResponse.fromJson(result);
+          _isError = false;
+        }
       } else {
         _isError = true;
         _errorMessage = 'Failed to open book.';

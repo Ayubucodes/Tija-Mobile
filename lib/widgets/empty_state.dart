@@ -28,8 +28,8 @@ class EmptyState extends StatelessWidget {
           children: [
             SvgPicture.asset(
               iconAsset ?? AppAssets.STAR_ICON,
-              width: iconSize ?? width / 15,
-              height: iconSize ?? width / 15,
+              width: iconSize ?? width / 16,
+              height: iconSize ?? width / 16,
             ),
             SizedBox(height: width / 30),
             Text(

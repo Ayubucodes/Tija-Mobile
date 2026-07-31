@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> with AuthenticationMixin {
                           validator: validateEmail,
                         ),
                       ),
-                      SizedBox(height: width / 22),
+                      SizedBox(height: width / 12),
 
                       // Password field
                       ShakeError(
