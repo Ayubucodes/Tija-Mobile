@@ -60,24 +60,9 @@ class _SplashScreenOneState extends State<SplashScreenOne> {
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    if (mounted && !_navigated) {
-      _navigated = true;
-
-      final accessToken = await _storage.read(key: AppPreference.accessToken);
-
-      if (accessToken != null && accessToken.isNotEmpty) {
-        // User is logged in, navigate to home and arm session
-        if (mounted) {
-          context.read<AuthState>().armSession();
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
-      } else {
-        // User is not logged in, navigate to login
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/login');
         }
-      }
-    }
   }
 
   @override

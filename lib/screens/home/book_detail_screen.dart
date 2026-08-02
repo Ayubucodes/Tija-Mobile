@@ -348,6 +348,22 @@ class _HeroHeader extends StatelessWidget {
                                   width: width / 2.6,
                                   height: width / 1.9,
                                   fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return const Center(
+                                          child: SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 1,
+                                              color: AppColor
+                                                  .defaultSecondaryColor,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                   errorBuilder: (_, __, ___) =>
                                       PlaceholderCover(
                                         width: width / 2.6,
@@ -939,6 +955,19 @@ class _RelatedBookCard extends StatelessWidget {
                     width: width / 3,
                     height: width / 2.5,
                     fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1,
+                            color: AppColor.defaultSecondaryColor,
+                          ),
+                        ),
+                      );
+                    },
                     errorBuilder: (_, __, ___) =>
                         PlaceholderCover(width: width / 3, height: width / 2.5),
                   ),

@@ -129,6 +129,22 @@ class _AddReviewScreenState extends State<AddReviewScreen> with ReviewMixin {
                                   width: width / 3.5,
                                   height: width / 2.6,
                                   fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return const Center(
+                                          child: SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 1,
+                                              color: AppColor
+                                                  .defaultSecondaryColor,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                   errorBuilder: (_, __, ___) => Container(
                                     width: width / 3.5,
                                     height: width / 2.6,

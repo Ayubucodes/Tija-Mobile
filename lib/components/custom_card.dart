@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/utils/app_util.dart';
 import 'package:tija/widgets/placeholder.dart';
@@ -50,6 +51,20 @@ class BookCard extends StatelessWidget {
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 1,
+                                          color:AppColor.defaultSecondaryColor,
+                                        ),
+                                      ),
+                                    );
+                                  },
                               errorBuilder: (_, __, ___) => PlaceholderCover(
                                 width: width,
                                 height: double.infinity,

@@ -274,6 +274,19 @@ class _AuthorRow extends StatelessWidget {
                           width: width / 10,
                           height: width / 10,
                           fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1,
+                                  color: AppColor.defaultSecondaryColor,
+                                ),
+                              ),
+                            );
+                          },
                           errorBuilder: (_, __, ___) =>
                               _buildDefaultAvatarIcon(width),
                         )
