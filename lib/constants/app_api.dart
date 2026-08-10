@@ -17,6 +17,9 @@ class AppApi {
   static final registerAuthorUrl = '/auth/register/author';
   static final registerAuthorFullUrl = appURL(registerAuthorUrl);
 
+  static final forgotPasswordUrl = '/auth/forgot-password';
+  static final forgotPasswordFullUrl = appURL(forgotPasswordUrl);
+
   static final authorsUrl = '/authors';
   static get authorsFullUrl => appURL(authorsUrl);
 

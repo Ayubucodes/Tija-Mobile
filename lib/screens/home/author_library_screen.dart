@@ -297,13 +297,17 @@ class _AuthorBookCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return const Center(
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1,
-                              color: AppColor.defaultSecondaryColor,
+                        return SizedBox(
+                          width: width / 3.5,
+                          height: coverHeight,
+                          child: Center(
+                            child: const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1,
+                                color: AppColor.defaultSecondaryColor,
+                              ),
                             ),
                           ),
                         );

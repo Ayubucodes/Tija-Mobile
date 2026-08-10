@@ -148,7 +148,10 @@ mixin UploadBookFilesMixin<T extends StatefulWidget> on State<T> {
 
     // Get the URLs from upload responses
     final coverImageUrl = booksState.coverUploadResponse?['url'] ?? '';
-    final bookFileUrl = booksState.bookFileUploadResponse?['bookFileUrl'] ?? '';
+    final bookFileUrl =
+        booksState.bookFileUploadResponse?['url'] ??
+        booksState.bookFileUploadResponse?['bookFileUrl'] ??
+        '';
 
     // Call updateBook API to set the image properly
     await booksState.updateBook(
@@ -166,10 +169,7 @@ mixin UploadBookFilesMixin<T extends StatefulWidget> on State<T> {
       if (mounted) {
         setState(() => isSubmittingBook = false);
       }
-      AppUtil.showToastMessage(
-        isError: true,
-        message: 'Failed to update book',
-      );
+      AppUtil.showToastMessage(isError: true, message: 'Failed to update book');
       return;
     }
 

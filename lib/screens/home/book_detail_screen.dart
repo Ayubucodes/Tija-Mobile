@@ -352,14 +352,18 @@ class _HeroHeader extends StatelessWidget {
                                       (context, child, loadingProgress) {
                                         if (loadingProgress == null)
                                           return child;
-                                        return const Center(
-                                          child: SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 1,
-                                              color: AppColor
-                                                  .defaultSecondaryColor,
+                                        return SizedBox(
+                                              width: width / 2.6,
+                                             height: width / 1.9,
+                                          child: const Center(
+                                            child: SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 1,
+                                                color: AppColor
+                                                    .defaultSecondaryColor,
+                                              ),
                                             ),
                                           ),
                                         );
@@ -957,13 +961,17 @@ class _RelatedBookCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return const Center(
-                        child: SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1,
-                            color: AppColor.defaultSecondaryColor,
+                      return SizedBox(
+                                            width: width / 3,
+                    height: width / 2.5,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1,
+                              color: AppColor.defaultSecondaryColor,
+                            ),
                           ),
                         ),
                       );

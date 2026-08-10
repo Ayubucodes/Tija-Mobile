@@ -138,4 +138,55 @@ class AuthService {
       return (false, 'Registration failed. Please try again.');
     }
   }
+
+  static Future<(bool success, String errorMessage)> forgotPassword({
+    required String email,
+  }) async {
+    try {
+      final url = await AppApi.forgotPasswordFullUrl;
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      print(
+        'AuthService FORGOT PASSWORD RESPONSE STATUS: ${response.statusCode}',
+      );
+      print('AuthService FORGOT PASSWORD RESPONSE BODY: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        final dataResponse = jsonDecode(response.body) as Map<String, dynamic>;
+        final message =
+            dataResponse['message']?.toString() ??
+            'If an account with that email exists, a reset link has been sent.';
+        return (true, message);
+      }
+
+      // Parse error message from response
+      final dataResponse = jsonDecode(response.body) as Map<String, dynamic>;
+      String errorMessage = 'Failed to send reset link. Please try again.';
+
+      if (dataResponse.containsKey('errors')) {
+        final errors = dataResponse['errors'] as Map<String, dynamic>;
+        if (errors.isNotEmpty) {
+          final firstErrorKey = errors.keys.first;
+          final errorList = errors[firstErrorKey] as List;
+          if (errorList.isNotEmpty) {
+            errorMessage = errorList.first.toString();
+          }
+        }
+      } else if (dataResponse.containsKey('detail')) {
+        errorMessage = dataResponse['detail'].toString();
+      } else if (dataResponse.containsKey('title')) {
+        errorMessage = dataResponse['title'].toString();
+      }
+
+      return (false, errorMessage);
+    } catch (e, stack) {
+      print('AuthService FORGOT PASSWORD ERROR: $e');
+      print('AuthService FORGOT PASSWORD STACK: $stack');
+      return (false, 'Failed to send reset link. Please try again.');
+    }
+  }
 }

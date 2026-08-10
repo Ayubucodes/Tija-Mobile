@@ -274,7 +274,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
 
                             if (items.isEmpty)
                               return EmptyState(
-                                message: 'Popular Books will be displayed here',
+                                message: 'Most popular books will be displayed here',
                               );
 
                             return SizedBox(

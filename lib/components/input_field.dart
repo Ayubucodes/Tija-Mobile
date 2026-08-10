@@ -54,7 +54,7 @@ class _InputFieldState extends State<InputField> {
               fontSize: 14,
               fontWeight: FontWeight.w400,
             ),
-            filled: true,
+            filled: false,
             fillColor: theme.inputFilledColor,
             prefixIcon: widget.prefixIcon,
             suffixIcon: widget.isPassword
@@ -78,17 +78,19 @@ class _InputFieldState extends State<InputField> {
             ),
             // --- key fix: collapse the reserved error line entirely ---
             isDense: true,
-            errorStyle: const TextStyle(
-              fontSize: 0,
-              height: 0,
-            ),
+            errorStyle: const TextStyle(fontSize: 0, height: 0),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
+              // borderSide: const BorderSide(color: Color(0xFFAAAAAA), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+              // borderSide: BorderSide.none,
+              borderSide: const BorderSide(
+                color: Color.fromARGB(68, 170, 170, 170),
+                width: 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -99,17 +101,11 @@ class _InputFieldState extends State<InputField> {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: Color(0xFFE53935),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: Color(0xFFE53935),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1),
             ),
           ),
         ),

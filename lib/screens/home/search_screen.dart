@@ -391,7 +391,7 @@ class _SearchScreenState extends State<SearchScreen> with SearchMixin {
       emptyMessage = 'No books found for this genre';
     } else {
       booksToDisplay = booksState.items;
-      emptyMessage = 'No books available';
+      emptyMessage = 'Most best selling books will be displayed here';
     }
 
     if (booksToDisplay.isEmpty) {

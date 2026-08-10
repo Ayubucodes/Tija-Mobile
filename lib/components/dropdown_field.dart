@@ -194,8 +194,8 @@ class _DropdownFieldState<T> extends State<DropdownField<T>> {
     final Color borderColor = hasError
         ? const Color(0xFFE55555)
         : _isOpen
-            ? theme.primaryColor
-            : Colors.transparent;
+        ? theme.primaryColor
+        : Colors.transparent;
 
     return CompositedTransformTarget(
       link: _layerLink,
@@ -222,9 +222,16 @@ class _DropdownFieldState<T> extends State<DropdownField<T>> {
               curve: Curves.easeOut,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: theme.inputFilledColor,
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor, width: 1.4),
+                border: Border.all(
+                  color: hasError
+                      ? const Color(0xFFE55555)
+                      : _isOpen
+                      ? theme.primaryColor
+                      : const Color.fromARGB(68, 170, 170, 170),
+                  width: 1.4,
+                ),
                 boxShadow: _isOpen
                     ? [
                         BoxShadow(
@@ -240,7 +247,9 @@ class _DropdownFieldState<T> extends State<DropdownField<T>> {
                   if (widget.prefixIcon != null) ...[
                     IconTheme(
                       data: IconThemeData(
-                        color: _isOpen ? theme.primaryColor : theme.secondaryText,
+                        color: _isOpen
+                            ? theme.primaryColor
+                            : theme.secondaryText,
                         size: 20,
                       ),
                       child: widget.prefixIcon!,

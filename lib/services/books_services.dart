@@ -344,6 +344,14 @@ class BooksService {
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
+      print('BooksService UPLOAD BOOK FILE STATUS: ${response.statusCode}');
+      print('BooksService UPLOAD BOOK FILE RESPONSE BODY: $responseBody');
+
+      if (responseBody.isEmpty) {
+        print('BooksService UPLOAD BOOK FILE ERROR: Empty response body');
+        return null;
+      }
+
       final dataResponse = jsonDecode(responseBody);
       print('BooksService UPLOAD BOOK FILE RESPONSE: $dataResponse');
 

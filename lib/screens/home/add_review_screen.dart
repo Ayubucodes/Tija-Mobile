@@ -133,14 +133,18 @@ class _AddReviewScreenState extends State<AddReviewScreen> with ReviewMixin {
                                       (context, child, loadingProgress) {
                                         if (loadingProgress == null)
                                           return child;
-                                        return const Center(
-                                          child: SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 1,
-                                              color: AppColor
-                                                  .defaultSecondaryColor,
+                                        return SizedBox(
+                                          width: width / 3.5,
+                                          height: width / 2.6,
+                                          child: const Center(
+                                            child: SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 1,
+                                                color: AppColor
+                                                    .defaultSecondaryColor,
+                                              ),
                                             ),
                                           ),
                                         );
@@ -291,8 +295,12 @@ class _AddReviewScreenState extends State<AddReviewScreen> with ReviewMixin {
                           SizedBox(height: width / 36),
                           Container(
                             decoration: BoxDecoration(
-                              color: theme.inputFilledColor,
+                              color: Colors.transparent,
                               borderRadius: BorderRadius.circular(width / 27),
+                              border: Border.all(
+                                color: const Color.fromARGB(68, 170, 170, 170),
+                                width: 1,
+                              ),
                             ),
                             child: TextField(
                               controller: reviewController,
@@ -307,7 +315,11 @@ class _AddReviewScreenState extends State<AddReviewScreen> with ReviewMixin {
                                   color: theme.secondaryText,
                                   fontSize: width / 26,
                                 ),
+                                filled: false,
+                                fillColor: theme.inputFilledColor,
                                 border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
                                 contentPadding: EdgeInsets.all(width / 22),
                               ),
                             ),

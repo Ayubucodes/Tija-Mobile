@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:tija/components/action_button.dart';
 import 'package:tija/components/dropdown_field.dart';
 import 'package:tija/components/input_field.dart';
@@ -128,6 +129,11 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                             hintText: 'Enter title',
                             controller: titleController,
                             validator: validateTitle,
+                            prefixIcon: Icon(
+                              Iconsax.book,
+                              color: const Color(0xFFAAAAAA),
+                              size: 20,
+                            ),
                           ),
                         ),
                         SizedBox(height: width / 12),
@@ -141,6 +147,11 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                             controller: priceController,
                             keyboardType: TextInputType.number,
                             validator: validatePrice,
+                            prefixIcon: Icon(
+                              Iconsax.money,
+                              color: const Color(0xFFAAAAAA),
+                              size: 20,
+                            ),
                           ),
                         ),
                         SizedBox(height: width / 12),
@@ -154,6 +165,11 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                             controller: totalPagesController,
                             keyboardType: TextInputType.number,
                             validator: validateTotalPages,
+                            prefixIcon: Icon(
+                              Iconsax.document,
+                              color: const Color(0xFFAAAAAA),
+                              size: 20,
+                            ),
                           ),
                         ),
                         SizedBox(height: width / 12),
@@ -166,6 +182,11 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                             hintText: 'Select genre',
                             value: selectedGenreId,
                             errorText: genreError,
+                            prefixIcon: Icon(
+                              Iconsax.category,
+                              color: const Color(0xFFAAAAAA),
+                              size: 20,
+                            ),
                             items: availableGenres
                                 .map(
                                   (genre) => DropdownItem(
@@ -196,22 +217,28 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                               color: theme.primaryText,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Enter description (max 37 words)',
+                              hintText: 'Enter description',
                               hintStyle: TextStyle(
                                 color: theme.secondaryText,
                                 fontSize: width / 26,
                               ),
-                              filled: true,
+                              filled: false,
                               fillColor: theme.inputFilledColor,
                               contentPadding: EdgeInsets.all(width / 22),
-                              errorStyle: const TextStyle(height: 0),
+                              errorStyle: const TextStyle(
+                                fontSize: 0,
+                                height: 0,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(width / 27),
                                 borderSide: BorderSide.none,
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(width / 27),
-                                borderSide: BorderSide.none,
+                                borderSide: const BorderSide(
+                                  color: Color.fromARGB(68, 170, 170, 170),
+                                  width: 1,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(width / 27),
@@ -236,18 +263,6 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                               ),
                             ),
                             validator: validateDescription,
-                            onChanged: (value) {
-                              final words = value.trim().split(RegExp(r'\s+'));
-                              if (words.length > 37) {
-                                final truncated = words.take(37).join(' ');
-                                descriptionController.value = TextEditingValue(
-                                  text: truncated,
-                                  selection: TextSelection.collapsed(
-                                    offset: truncated.length,
-                                  ),
-                                );
-                              }
-                            },
                           ),
                         ),
                       ],

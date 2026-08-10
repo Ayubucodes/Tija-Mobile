@@ -204,4 +204,43 @@ class AuthState extends ChangeNotifier {
     _noInactivityTimeout = false;
     notifyListeners();
   }
+
+  // ── Forgot Password ─────────────────────────────────────────────────────
+  Future<bool> onForgotPassword({required String email}) async {
+    if (!_connectivityState.connectivityStatus) {
+      AppUtil.showToastMessage(
+        message: 'Please check your network.',
+        isError: true,
+      );
+      return false;
+    }
+
+    _isLoading = true;
+    _isError = false;
+    _errorMessage = '';
+    notifyListeners();
+
+    try {
+      final (success, message) = await AuthService.forgotPassword(email: email);
+
+      if (success) {
+        _isError = false;
+        _isLoading = false;
+        notifyListeners();
+
+        AppUtil.showToastMessage(message: message, isError: false);
+        return true;
+      } else {
+        _isError = true;
+        _errorMessage = message;
+      }
+    } catch (e) {
+      _isError = true;
+      _errorMessage = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
 }
