@@ -10,6 +10,7 @@ import 'package:tija/mixins/search_mixin.dart';
 import 'package:tija/models/books_model.dart';
 import 'package:tija/screens/home/more_books_screen.dart';
 import 'package:tija/states/books_state.dart';
+import 'package:tija/states/theme_state.dart';
 import 'package:tija/widgets/empty_state.dart';
 
 class Homepage extends StatefulWidget {
@@ -70,6 +71,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
+    final themeState = context.watch<ThemeState>();
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: theme.primaryBackground,
@@ -99,6 +101,24 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                         ),
                       ),
                     ),
+
+                    GestureDetector(
+                      onTap: () => themeState.toggleTheme(),
+                      child: Container(
+                        width: width / 11,
+                        height: width / 11,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.secondaryBackground,
+                        ),
+                        child: Icon(
+                          themeState.isDarkTheme ? Iconsax.sun_1 : Iconsax.moon,
+                          color: theme.primaryText,
+                          size: width / 18,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
                     Image.asset(AppAssets.AVATAR_ICON, width: 30, height: 30),
                   ],
                 ),
@@ -274,7 +294,8 @@ class _HomepageState extends State<Homepage> with SearchMixin {
 
                             if (items.isEmpty)
                               return EmptyState(
-                                message: 'Most popular books will be displayed here',
+                                message:
+                                    'Most popular books will be displayed here',
                               );
 
                             return SizedBox(

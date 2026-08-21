@@ -165,15 +165,15 @@ class BooksState extends ChangeNotifier {
         _isError = false;
       } else {
         _isError = true;
-        _errorMessage = 'Failed to load books.';
+        _errorMessage = 'Failed to load books. Please check your connection.';
       }
     } catch (e) {
       _isError = true;
-      _errorMessage = e.toString();
+      _errorMessage = 'Failed to load books: ${e.toString()}';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<void> onGetRelatedBooks(String genreId) async {
@@ -258,15 +258,16 @@ class BooksState extends ChangeNotifier {
         _isErrorGenres = false;
       } else {
         _isErrorGenres = true;
-        _errorMessageGenres = 'Failed to load genres.';
+        _errorMessageGenres =
+            'Failed to load genres. Please check your connection.';
       }
     } catch (e) {
       _isErrorGenres = true;
-      _errorMessageGenres = e.toString();
+      _errorMessageGenres = 'Failed to load genres: ${e.toString()}';
+    } finally {
+      _isLoadingGenres = false;
+      notifyListeners();
     }
-
-    _isLoadingGenres = false;
-    notifyListeners();
   }
 
   Future<bool> uploadBook({
@@ -434,15 +435,16 @@ class BooksState extends ChangeNotifier {
         _isSearchError = false;
       } else {
         _isSearchError = true;
-        _searchErrorMessage = 'Failed to search books.';
+        _searchErrorMessage =
+            'Failed to search books. Please check your connection.';
       }
     } catch (e) {
       _isSearchError = true;
-      _searchErrorMessage = e.toString();
+      _searchErrorMessage = 'Failed to search books: ${e.toString()}';
+    } finally {
+      _isSearching = false;
+      notifyListeners();
     }
-
-    _isSearching = false;
-    notifyListeners();
   }
 
   Future<void> onGetReviews(String bookId) async {

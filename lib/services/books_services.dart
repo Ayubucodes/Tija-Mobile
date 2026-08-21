@@ -33,12 +33,14 @@ class BooksService {
       }
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
+      print('BooksService: Requesting $uri');
 
       final response = await http.get(
         uri,
         headers: {'Content-Type': 'application/json'},
       );
 
+      print('BooksService: Status code ${response.statusCode}');
       final dataResponse = jsonDecode(response.body);
       print('BooksService RESPONSE: $dataResponse');
 
@@ -56,7 +58,14 @@ class BooksService {
               dataResponse['books'] is Map<String, dynamic>) {
             return Books.fromJson(dataResponse['books']);
           }
+
+          // Log unexpected response format for debugging
+          print('BooksService: Unexpected response format: $dataResponse');
         }
+      } else {
+        // Log non-2xx status code
+        print('BooksService: Non-2xx status code: ${response.statusCode}');
+        print('BooksService: Response body: $dataResponse');
       }
 
       return null;
@@ -71,12 +80,14 @@ class BooksService {
     try {
       final baseUrl = await AppApi.genresFullUrl;
       final uri = Uri.parse(baseUrl);
+      print('BooksService: Requesting genres $uri');
 
       final response = await http.get(
         uri,
         headers: {'Content-Type': 'application/json'},
       );
 
+      print('BooksService: Genres status code ${response.statusCode}');
       final dataResponse = jsonDecode(response.body);
       print('BooksService GENRES RESPONSE: $dataResponse');
 
@@ -84,6 +95,11 @@ class BooksService {
         if (dataResponse is List) {
           return List<Genre>.from(dataResponse.map((x) => Genre.fromJson(x)));
         }
+      } else {
+        print(
+          'BooksService: Genres non-2xx status code: ${response.statusCode}',
+        );
+        print('BooksService: Genres response body: $dataResponse');
       }
 
       return null;
@@ -110,12 +126,14 @@ class BooksService {
       }
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
+      print('BooksService: Searching books $uri');
 
       final response = await http.get(
         uri,
         headers: {'Content-Type': 'application/json'},
       );
 
+      print('BooksService: Search status code ${response.statusCode}');
       final dataResponse = jsonDecode(response.body);
       print('BooksService SEARCH RESPONSE: $dataResponse');
 
@@ -130,7 +148,16 @@ class BooksService {
               dataResponse['books'] is Map<String, dynamic>) {
             return Books.fromJson(dataResponse['books']);
           }
+
+          print(
+            'BooksService: Search unexpected response format: $dataResponse',
+          );
         }
+      } else {
+        print(
+          'BooksService: Search non-2xx status code: ${response.statusCode}',
+        );
+        print('BooksService: Search response body: $dataResponse');
       }
 
       return null;

@@ -11,4 +11,7 @@ class AppAssets {
   static const String STAR_ICON = 'assets/icons/star_icon.svg';
   static const String AVATAR_ICON = 'assets/icons/avater.png';
   static const String SPRASH_GIF = 'assets/gifs/sprash.gif';
+  static const String AIRTEL_LOGO = 'assets/images/airtel.png';
+  static const String YAS_LOGO = 'assets/images/yas.png';
+  static const String HALOTEL_LOGO = 'assets/images/halopesa1.png';
 }

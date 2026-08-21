@@ -168,123 +168,44 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                           physics: const AlwaysScrollableScrollPhysics(
                             parent: BouncingScrollPhysics(),
                           ),
-                          padding: EdgeInsets.fromLTRB(
-                            width / 22,
-                            width / 90,
-                            width / 22,
-                            width / 12,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: width / 22),
-
-                              // ── Combined Overview Card ──────────────────────
-                              _OverviewCard(
-                                width: width,
-                                theme: theme,
-                                pendingBalanceTzs: dashboard.pendingBalanceTzs,
-                                totalBooks: dashboard.totalBooks,
-                                publishedBooks: dashboard.publishedBooks,
-                                revenueTzs: dashboard.totalRevenueTzs,
-                                paidOutTzs: dashboard.totalPaidOutTzs,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: MediaQuery.of(context).size.height,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                width / 22,
+                                width / 90,
+                                width / 22,
+                                width / 12,
                               ),
-                              SizedBox(height: width / 22),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: width / 22),
 
-                              // ── Withdraw Money Card ─────────────────────────────
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(
-                                    width / 18,
+                                  // ── Combined Overview Card ──────────────────────
+                                  _OverviewCard(
+                                    width: width,
+                                    theme: theme,
+                                    pendingBalanceTzs:
+                                        dashboard.pendingBalanceTzs,
+                                    totalBooks: dashboard.totalBooks,
+                                    publishedBooks: dashboard.publishedBooks,
+                                    revenueTzs: dashboard.totalRevenueTzs,
+                                    paidOutTzs: dashboard.totalPaidOutTzs,
                                   ),
-                                  onTap: () {
-                                    showWithdrawalBottomSheet();
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(width / 22),
-                                    decoration: BoxDecoration(
-                                      color: theme.secondaryBackground,
-                                      borderRadius: BorderRadius.circular(
-                                        width / 18,
-                                      ),
-                                      border: Border.all(
-                                        color: AppColor.defaultSecondaryColor
-                                            .withOpacity(0.4),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: width / 10,
-                                          height: width / 10,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: AppColor
-                                                .defaultSecondaryColor
-                                                .withOpacity(0.12),
-                                            border: Border.all(
-                                              color: AppColor
-                                                  .defaultSecondaryColor
-                                                  .withOpacity(0.4),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Iconsax.money_send,
-                                            color:
-                                                AppColor.defaultSecondaryColor,
-                                            size: width / 20,
-                                          ),
-                                        ),
-                                        SizedBox(width: width / 22),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Withdraw Money',
-                                                style: TextStyle(
-                                                  fontSize: width / 28,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: theme.primaryText,
-                                                ),
-                                              ),
-                                              SizedBox(height: width / 150),
-                                              Text(
-                                                'Request withdrawal to your account',
-                                                style: TextStyle(
-                                                  fontSize: width / 34,
-                                                  color: theme.secondaryText,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Icon(
-                                          Iconsax.arrow_right_3,
-                                          color: theme.secondaryText,
-                                          size: width / 24,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: width / 22),
+                                  SizedBox(height: width / 22),
 
-                              Consumer<AuthorState>(
-                                builder: (_, authorState, __) {
-                                  return Material(
+                                  // ── Withdraw Money Card ─────────────────────────────
+                                  Material(
                                     color: Colors.transparent,
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(
                                         width / 18,
                                       ),
-                                      onTap: () async {
-                                        navigateToAuthorLibrary();
+                                      onTap: () {
+                                        showWithdrawalBottomSheet();
                                       },
                                       child: Container(
                                         padding: EdgeInsets.all(width / 22),
@@ -318,7 +239,7 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                                                 ),
                                               ),
                                               child: Icon(
-                                                Iconsax.book,
+                                                Iconsax.money_send,
                                                 color: AppColor
                                                     .defaultSecondaryColor,
                                                 size: width / 20,
@@ -331,7 +252,7 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    'My Books',
+                                                    'Withdraw Money',
                                                     style: TextStyle(
                                                       fontSize: width / 28,
                                                       fontWeight:
@@ -341,7 +262,7 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                                                   ),
                                                   SizedBox(height: width / 150),
                                                   Text(
-                                                    '${authorState.authorDashboard?.totalBooks ?? 0} books available',
+                                                    'Request withdrawal to your account',
                                                     style: TextStyle(
                                                       fontSize: width / 34,
                                                       color:
@@ -360,94 +281,192 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                                         ),
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
-                              SizedBox(height: width / 22),
-
-                              // ── Upload Book Card ───────────────────────────────
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(
-                                    width / 18,
                                   ),
-                                  onTap: () {
-                                    navigateToBookUploadScreen();
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(width / 22),
-                                    decoration: BoxDecoration(
-                                      color: theme.secondaryBackground,
+                                  SizedBox(height: width / 22),
+
+                                  Consumer<AuthorState>(
+                                    builder: (_, authorState, __) {
+                                      return Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            width / 18,
+                                          ),
+                                          onTap: () async {
+                                            navigateToAuthorLibrary();
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.all(width / 22),
+                                            decoration: BoxDecoration(
+                                              color: theme.secondaryBackground,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    width / 18,
+                                                  ),
+                                              border: Border.all(
+                                                color: AppColor
+                                                    .defaultSecondaryColor
+                                                    .withOpacity(0.4),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  width: width / 10,
+                                                  height: width / 10,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: AppColor
+                                                        .defaultSecondaryColor
+                                                        .withOpacity(0.12),
+                                                    border: Border.all(
+                                                      color: AppColor
+                                                          .defaultSecondaryColor
+                                                          .withOpacity(0.4),
+                                                      width: 1,
+                                                    ),
+                                                  ),
+                                                  child: Icon(
+                                                    Iconsax.book,
+                                                    color: AppColor
+                                                        .defaultSecondaryColor,
+                                                    size: width / 20,
+                                                  ),
+                                                ),
+                                                SizedBox(width: width / 22),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'My Books',
+                                                        style: TextStyle(
+                                                          fontSize: width / 28,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color:
+                                                              theme.primaryText,
+                                                        ),
+                                                      ),
+                                                      SizedBox(
+                                                        height: width / 150,
+                                                      ),
+                                                      Text(
+                                                        '${authorState.authorDashboard?.totalBooks ?? 0} books available',
+                                                        style: TextStyle(
+                                                          fontSize: width / 34,
+                                                          color: theme
+                                                              .secondaryText,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  Iconsax.arrow_right_3,
+                                                  color: theme.secondaryText,
+                                                  size: width / 24,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  SizedBox(height: width / 22),
+
+                                  // ── Upload Book Card ───────────────────────────────
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
                                       borderRadius: BorderRadius.circular(
                                         width / 18,
                                       ),
-                                      border: Border.all(
-                                        color: AppColor.defaultSecondaryColor
-                                            .withOpacity(0.4),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: width / 10,
-                                          height: width / 10,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
+                                      onTap: () {
+                                        navigateToBookUploadScreen();
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.all(width / 22),
+                                        decoration: BoxDecoration(
+                                          color: theme.secondaryBackground,
+                                          borderRadius: BorderRadius.circular(
+                                            width / 18,
+                                          ),
+                                          border: Border.all(
                                             color: AppColor
                                                 .defaultSecondaryColor
-                                                .withOpacity(0.12),
-                                            border: Border.all(
-                                              color: AppColor
-                                                  .defaultSecondaryColor
-                                                  .withOpacity(0.4),
-                                              width: 1,
+                                                .withOpacity(0.4),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: width / 10,
+                                              height: width / 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: AppColor
+                                                    .defaultSecondaryColor
+                                                    .withOpacity(0.12),
+                                                border: Border.all(
+                                                  color: AppColor
+                                                      .defaultSecondaryColor
+                                                      .withOpacity(0.4),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: Icon(
+                                                Iconsax.document_upload,
+                                                color: AppColor
+                                                    .defaultSecondaryColor,
+                                                size: width / 20,
+                                              ),
                                             ),
-                                          ),
-                                          child: Icon(
-                                            Iconsax.document_upload,
-                                            color:
-                                                AppColor.defaultSecondaryColor,
-                                            size: width / 20,
-                                          ),
-                                        ),
-                                        SizedBox(width: width / 22),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Upload a Book',
-                                                style: TextStyle(
-                                                  fontSize: width / 28,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: theme.primaryText,
-                                                ),
+                                            SizedBox(width: width / 22),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Upload a Book',
+                                                    style: TextStyle(
+                                                      fontSize: width / 28,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: theme.primaryText,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: width / 150),
+                                                  Text(
+                                                    'Add a new title to your catalog',
+                                                    style: TextStyle(
+                                                      fontSize: width / 34,
+                                                      color:
+                                                          theme.secondaryText,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              SizedBox(height: width / 150),
-                                              Text(
-                                                'Add a new title to your catalog',
-                                                style: TextStyle(
-                                                  fontSize: width / 34,
-                                                  color: theme.secondaryText,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                            Icon(
+                                              Iconsax.arrow_right_3,
+                                              color: theme.secondaryText,
+                                              size: width / 24,
+                                            ),
+                                          ],
                                         ),
-                                        Icon(
-                                          Iconsax.arrow_right_3,
-                                          color: theme.secondaryText,
-                                          size: width / 24,
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       );

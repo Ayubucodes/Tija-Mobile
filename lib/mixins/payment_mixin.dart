@@ -5,6 +5,7 @@ import 'package:tija/components/action_button.dart';
 import 'package:tija/components/custom_dialog.dart';
 import 'package:tija/components/input_field.dart';
 import 'package:tija/components/shake_error.dart';
+import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_preference.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/services/payment_service.dart';
@@ -102,22 +103,24 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(height: width / 20),
-                    Text(
-                      'Enter Phone Number',
-                      style: TextStyle(
-                        fontSize: width / 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.of(context).primaryText,
-                      ),
+                    SizedBox(height: width / 22),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(AppAssets.AIRTEL_LOGO, width: width / 5),
+                        SizedBox(width: width / 20),
+                        Image.asset(AppAssets.YAS_LOGO, width: width / 5),
+                        SizedBox(width: width / 20),
+                        Image.asset(AppAssets.HALOTEL_LOGO, width: width / 5),
+                      ],
                     ),
-                    SizedBox(height: width / 15),
+                    SizedBox(height: width / 20),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: width / 20),
                       child: ShakeError(
                         key: _phoneNumberShakeKey,
                         child: InputField(
-                          hintText: 'Enter your phone number',
+                          hintText: 'Enter payment number',
                           controller: _phoneNumberController,
                           keyboardType: TextInputType.phone,
                           prefixIcon: const Icon(Icons.phone_outlined),

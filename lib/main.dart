@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
         title: 'Tija',
         debugShowCheckedModeBanner: false,
         themeMode: themeState.themeMode,
-        theme: AppThemeData.dark,
+        theme: AppThemeData.light,
         darkTheme: AppThemeData.dark,
         initialRoute: '/splash_one',
         routes: {
