@@ -47,7 +47,7 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await AuthService.login(
+      final (result, errorMessage) = await AuthService.login(
         username: username,
         password: password,
       );
@@ -70,11 +70,13 @@ class AuthState extends ChangeNotifier {
         return true;
       } else {
         _isError = true;
-        _errorMessage = 'Invalid email or password.';
+        _errorMessage = errorMessage.isNotEmpty
+            ? errorMessage
+            : 'Invalid email or password.';
       }
     } catch (e) {
       _isError = true;
-      _errorMessage = e.toString();
+      _errorMessage = 'An error occurred. Please try again.';
     }
 
     _isLoading = false;

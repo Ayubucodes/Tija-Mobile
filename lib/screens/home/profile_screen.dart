@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:tija/components/custom_bottom_navigation.dart';
 import 'package:tija/components/loading_overlay.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
@@ -46,7 +47,15 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                 child: Row(
                   children: [
                     IconButton(
-                      onPressed: () => {},
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CustomBottomNavigation(),
+                          ),
+                          (route) => false,
+                        );
+                      },
                       icon: Icon(
                         Icons.chevron_left_rounded,
                         size: width / 13,

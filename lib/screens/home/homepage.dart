@@ -26,9 +26,10 @@ class _HomepageState extends State<Homepage> with SearchMixin {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BooksState>().onGetBooks();
-      context.read<BooksState>().getMostPopularBooks();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final booksState = context.read<BooksState>();
+      await booksState.onGetBooks();
+      await booksState.getMostPopularBooks();
     });
   }
 
@@ -72,6 +73,7 @@ class _HomepageState extends State<Homepage> with SearchMixin {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
     final themeState = context.watch<ThemeState>();
+    final booksState = context.watch<BooksState>();
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: theme.primaryBackground,
@@ -205,13 +207,12 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                           },
                         ),
                         SizedBox(height: width / 25),
-                        Consumer<BooksState>(
-                          builder: (context, booksState, _) {
+                        Builder(
+                          builder: (context) {
                             final items = _filterBooks(booksState.items);
 
                             if (booksState.isLoading) {
                               return BookCardShimmerList(
-                                // height: width / 1.5,
                                 itemWidth: width / 3,
                                 imageHeight: width / 2.3,
                               );
@@ -280,13 +281,12 @@ class _HomepageState extends State<Homepage> with SearchMixin {
                           },
                         ),
                         SizedBox(height: width / 25),
-                        Consumer<BooksState>(
-                          builder: (context, booksState, _) {
+                        Builder(
+                          builder: (context) {
                             final items = booksState.mostPopularItems;
 
                             if (booksState.isLoadingMostPopular) {
                               return BookCardShimmerList(
-                                // height: width / 1.6,
                                 itemWidth: width / 2.8,
                                 imageHeight: width / 2.2,
                               );

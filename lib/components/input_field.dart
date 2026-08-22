@@ -86,11 +86,7 @@ class _InputFieldState extends State<InputField> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              // borderSide: BorderSide.none,
-              borderSide: const BorderSide(
-                color: Color.fromARGB(68, 170, 170, 170),
-                width: 1,
-              ),
+              borderSide: BorderSide(color: theme.borderColor, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),

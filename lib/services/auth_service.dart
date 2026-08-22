@@ -1,33 +1,69 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:tija/constants/app_api.dart';
 import 'package:tija/models/auth_model.dart';
 
 class AuthService {
-  static Future<AuthResponse?> login({
+  static Future<(AuthResponse?, String errorMessage)> login({
     required String username,
     required String password,
   }) async {
     try {
       final url = await AppApi.loginFullUrl;
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      );
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'username': username, 'password': password}),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw SocketException(
+                'Connection timeout. Please check your internet connection.',
+              );
+            },
+          );
 
       final dataResponse = jsonDecode(response.body);
       print('AuthService LOGIN RESPONSE: $dataResponse');
 
       if (response.statusCode >= 200 && response.statusCode <= 299) {
-        return AuthResponse.fromJson(dataResponse as Map<String, dynamic>);
+        return (
+          AuthResponse.fromJson(dataResponse as Map<String, dynamic>),
+          '',
+        );
       }
 
-      return null;
+      // Parse error message from response
+      String errorMessage = 'Invalid email or password.';
+      if (dataResponse.containsKey('errors')) {
+        final errors = dataResponse['errors'] as Map<String, dynamic>;
+        if (errors.isNotEmpty) {
+          final firstErrorKey = errors.keys.first;
+          final errorList = errors[firstErrorKey] as List;
+          if (errorList.isNotEmpty) {
+            errorMessage = errorList.first.toString();
+          }
+        }
+      } else if (dataResponse.containsKey('detail')) {
+        errorMessage = dataResponse['detail'].toString();
+      } else if (dataResponse.containsKey('title')) {
+        errorMessage = dataResponse['title'].toString();
+      }
+
+      return (null, errorMessage);
+    } on SocketException catch (e) {
+      print('AuthService LOGIN NETWORK ERROR: $e');
+      return (
+        null,
+        'No internet connection. Please check your network and try again.',
+      );
     } catch (e, stack) {
       print('AuthService LOGIN ERROR: $e');
       print('AuthService LOGIN STACK: $stack');
-      return null;
+      return (null, 'An error occurred. Please try again.');
     }
   }
 
