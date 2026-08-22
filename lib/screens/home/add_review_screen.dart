@@ -3,6 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/action_button.dart';
 import 'package:tija/components/loading_overlay.dart';
+import 'package:tija/components/shake_error.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/mixins/review_mixin.dart';
@@ -293,34 +294,57 @@ class _AddReviewScreenState extends State<AddReviewScreen> with ReviewMixin {
                             ),
                           ),
                           SizedBox(height: width / 36),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(width / 27),
-                              border: Border.all(
-                                color: const Color.fromARGB(68, 170, 170, 170),
-                                width: 1,
-                              ),
-                            ),
-                            child: TextField(
-                              controller: reviewController,
-                              maxLines: 5,
-                              style: TextStyle(
-                                fontSize: width / 26,
-                                color: theme.primaryText,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Enter Here',
-                                hintStyle: TextStyle(
-                                  color: theme.secondaryText,
-                                  fontSize: width / 26,
+                          ShakeError(
+                            key: reviewShakeKey,
+                            duration: const Duration(milliseconds: 500),
+                            shakeCount: 3,
+                            shakeOffset: 10,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(width / 27),
+                                border: Border.all(
+                                  color: reviewError
+                                      ? const Color(0xFFE53935)
+                                      : theme.borderColor,
+                                  width: 1,
                                 ),
-                                filled: false,
-                                fillColor: theme.inputFilledColor,
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                contentPadding: EdgeInsets.all(width / 22),
+                              ),
+                              child: TextField(
+                                controller: reviewController,
+                                maxLines: 5,
+                                style: TextStyle(
+                                  fontSize: width / 26,
+                                  color: theme.primaryText,
+                                ),
+                                onChanged: (_) {
+                                  if (reviewError) {
+                                    setState(() => reviewError = false);
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'Enter Here',
+                                  hintStyle: TextStyle(
+                                    color: theme.secondaryText,
+                                    fontSize: width / 26,
+                                  ),
+                                  filled: false,
+                                  fillColor: theme.inputFilledColor,
+                                  border: InputBorder.none,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      width / 27,
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: reviewError
+                                          ? const Color(0xFFE53935)
+                                          : theme.borderColor,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.all(width / 22),
+                                ),
                               ),
                             ),
                           ),

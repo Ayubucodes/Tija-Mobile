@@ -235,10 +235,7 @@ class _UploadBookScreenState extends State<UploadBookScreen>
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(width / 27),
-                                borderSide: const BorderSide(
-                                  color: Color.fromARGB(68, 170, 170, 170),
-                                  width: 1,
-                                ),
+                                borderSide: BorderSide(color: theme.borderColor, width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(width / 27),

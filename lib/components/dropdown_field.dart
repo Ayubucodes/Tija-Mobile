@@ -194,7 +194,7 @@ class _DropdownFieldState<T> extends State<DropdownField<T>> {
     final Color borderColor = hasError
         ? const Color(0xFFE55555)
         : _isOpen
-        ? theme.primaryColor
+        ? theme.borderColor
         : Colors.transparent;
 
     return CompositedTransformTarget(

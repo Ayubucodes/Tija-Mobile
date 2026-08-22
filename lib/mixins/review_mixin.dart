@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tija/components/shake_error.dart';
 import 'package:tija/models/books_model.dart';
 import 'package:tija/services/review_service.dart';
 import 'package:tija/states/books_state.dart';
@@ -9,6 +10,9 @@ mixin ReviewMixin<T extends StatefulWidget> on State<T> {
   int selectedRating = 3;
   final TextEditingController reviewController = TextEditingController();
   bool isSubmitting = false;
+  final GlobalKey<ShakeErrorState> reviewShakeKey =
+      GlobalKey<ShakeErrorState>();
+  bool reviewError = false;
 
   @override
   void dispose() {
@@ -20,10 +24,8 @@ mixin ReviewMixin<T extends StatefulWidget> on State<T> {
     FocusScope.of(context).unfocus();
 
     if (reviewController.text.trim().isEmpty) {
-      AppUtil.showToastMessage(
-        isError: true,
-        message: 'Please enter your review comment',
-      );
+      setState(() => reviewError = true);
+      reviewShakeKey.currentState?.shake();
       return;
     }
 
