@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tija/models/books_model.dart';
 import 'package:tija/services/books_services.dart';
+import 'package:tija/services/review_service.dart';
 
 class BooksState extends ChangeNotifier {
-
   Books? _books;
   bool _isLoading = false;
   bool _isError = false;
@@ -39,11 +39,45 @@ class BooksState extends ChangeNotifier {
   Map<String, dynamic>? _bookFileUploadResponse;
   Map<String, dynamic>? _coverUploadResponse;
 
+  // State for updating book
+  bool _isUpdatingBook = false;
+  bool _isUpdateBookError = false;
+  String _updateBookErrorMessage = '';
+  BookDetail? _updatedBook;
+
+  // State for deleting book
+  bool _isDeletingBook = false;
+  bool _isDeleteBookError = false;
+  String _deleteBookErrorMessage = '';
+
+  // State for submitting book for review
+  bool _isSubmittingBook = false;
+  bool _isSubmitBookError = false;
+  String _submitBookErrorMessage = '';
+
   // State for search
   Books? _searchResults;
   bool _isSearching = false;
   bool _isSearchError = false;
   String _searchErrorMessage = '';
+
+  // State for reviews
+  Reviews? _reviews;
+  bool _isLoadingReviews = false;
+  bool _isErrorReviews = false;
+  String _errorMessageReviews = '';
+
+  // State for author books
+  Books? _authorBooks;
+  bool _isLoadingAuthorBooks = false;
+  bool _isErrorAuthorBooks = false;
+  String _errorMessageAuthorBooks = '';
+
+  // State for most popular books
+  Books? _mostPopularBooks;
+  bool _isLoadingMostPopular = false;
+  bool _isErrorMostPopular = false;
+  String _errorMessageMostPopular = '';
 
   Books? get books => _books;
   List<Item> get items => _books?.items ?? [];
@@ -83,8 +117,38 @@ class BooksState extends ChangeNotifier {
   bool get isSearchError => _isSearchError;
   String get searchErrorMessage => _searchErrorMessage;
 
-  Future<void> onGetBooks({int page = 1, int pageSize = 10}) async {
+  Reviews? get reviews => _reviews;
+  List<Review> get reviewItems => _reviews?.items ?? [];
+  bool get isLoadingReviews => _isLoadingReviews;
+  bool get isErrorReviews => _isErrorReviews;
+  String get errorMessageReviews => _errorMessageReviews;
 
+  Books? get authorBooks => _authorBooks;
+  List<Item> get authorBooksItems => _authorBooks?.items ?? [];
+  bool get isLoadingAuthorBooks => _isLoadingAuthorBooks;
+  bool get isErrorAuthorBooks => _isErrorAuthorBooks;
+  String get errorMessageAuthorBooks => _errorMessageAuthorBooks;
+
+  Books? get mostPopularBooks => _mostPopularBooks;
+  List<Item> get mostPopularItems => _mostPopularBooks?.items ?? [];
+  bool get isLoadingMostPopular => _isLoadingMostPopular;
+  bool get isErrorMostPopular => _isErrorMostPopular;
+  String get errorMessageMostPopular => _errorMessageMostPopular;
+
+  bool get isUpdatingBook => _isUpdatingBook;
+  bool get isUpdateBookError => _isUpdateBookError;
+  String get updateBookErrorMessage => _updateBookErrorMessage;
+  BookDetail? get updatedBook => _updatedBook;
+
+  bool get isDeletingBook => _isDeletingBook;
+  bool get isDeleteBookError => _isDeleteBookError;
+  String get deleteBookErrorMessage => _deleteBookErrorMessage;
+
+  bool get isSubmittingBookForReview => _isSubmittingBook;
+  bool get isSubmitBookError => _isSubmitBookError;
+  String get submitBookErrorMessage => _submitBookErrorMessage;
+
+  Future<void> onGetBooks({int page = 1, int pageSize = 10}) async {
     _isLoading = true;
     _isError = false;
     _errorMessage = '';
@@ -101,19 +165,18 @@ class BooksState extends ChangeNotifier {
         _isError = false;
       } else {
         _isError = true;
-        _errorMessage = 'Failed to load books.';
+        _errorMessage = 'Failed to load books. Please check your connection.';
       }
     } catch (e) {
       _isError = true;
-      _errorMessage = e.toString();
+      _errorMessage = 'Failed to load books: ${e.toString()}';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<void> onGetRelatedBooks(String genreId) async {
-
     _isLoadingRelated = true;
     _isErrorRelated = false;
     _errorMessageRelated = '';
@@ -143,7 +206,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> onGetBookById(String id) async {
-
     _isLoadingDetail = true;
     _isErrorDetail = false;
     _errorMessageDetail = '';
@@ -183,7 +245,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> onGetGenres() async {
-
     _isLoadingGenres = true;
     _isErrorGenres = false;
     _errorMessageGenres = '';
@@ -197,15 +258,16 @@ class BooksState extends ChangeNotifier {
         _isErrorGenres = false;
       } else {
         _isErrorGenres = true;
-        _errorMessageGenres = 'Failed to load genres.';
+        _errorMessageGenres =
+            'Failed to load genres. Please check your connection.';
       }
     } catch (e) {
       _isErrorGenres = true;
-      _errorMessageGenres = e.toString();
+      _errorMessageGenres = 'Failed to load genres: ${e.toString()}';
+    } finally {
+      _isLoadingGenres = false;
+      notifyListeners();
     }
-
-    _isLoadingGenres = false;
-    notifyListeners();
   }
 
   Future<bool> uploadBook({
@@ -215,8 +277,6 @@ class BooksState extends ChangeNotifier {
     required int totalPages,
     required List<String> genreIds,
   }) async {
-
-
     _isUploading = true;
     _isUploadError = false;
     _uploadErrorMessage = '';
@@ -250,7 +310,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<bool> uploadBookFile(String bookId, File file) async {
-
     _isUploadingFiles = true;
     _isUploadFilesError = false;
     _uploadFilesErrorMessage = '';
@@ -262,7 +321,36 @@ class BooksState extends ChangeNotifier {
 
       if (result != null) {
         _bookFileUploadResponse = result;
-        _isUploadFilesError = false;
+
+        // Check if response contains errors (validation error from server)
+        if (result.containsKey('errors') && result['errors'] is Map) {
+          final errors = result['errors'] as Map<String, dynamic>;
+          if (errors.isNotEmpty) {
+            _isUploadFilesError = true;
+            // Extract the first error message
+            final firstErrorKey = errors.keys.first;
+            final errorMessages = errors[firstErrorKey];
+            if (errorMessages is List && errorMessages.isNotEmpty) {
+              _uploadFilesErrorMessage = errorMessages.first.toString();
+            } else {
+              _uploadFilesErrorMessage = errorMessages.toString();
+            }
+          } else {
+            _isUploadFilesError = false;
+          }
+        } else if (result.containsKey('title') &&
+            result.containsKey('status')) {
+          // Check if it's an error response with title and status
+          if (result['status'] != 200 && result['status'] != 201) {
+            _isUploadFilesError = true;
+            _uploadFilesErrorMessage =
+                result['title']?.toString() ?? 'Failed to upload book file.';
+          } else {
+            _isUploadFilesError = false;
+          }
+        } else {
+          _isUploadFilesError = false;
+        }
       } else {
         _isUploadFilesError = true;
         _uploadFilesErrorMessage = 'Failed to upload book file.';
@@ -278,7 +366,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<bool> uploadCover(File file) async {
-
     _isUploadingFiles = true;
     _isUploadFilesError = false;
     _uploadFilesErrorMessage = '';
@@ -290,7 +377,36 @@ class BooksState extends ChangeNotifier {
 
       if (result != null) {
         _coverUploadResponse = result;
-        _isUploadFilesError = false;
+
+        // Check if response contains errors (validation error from server)
+        if (result.containsKey('errors') && result['errors'] is Map) {
+          final errors = result['errors'] as Map<String, dynamic>;
+          if (errors.isNotEmpty) {
+            _isUploadFilesError = true;
+            // Extract the first error message
+            final firstErrorKey = errors.keys.first;
+            final errorMessages = errors[firstErrorKey];
+            if (errorMessages is List && errorMessages.isNotEmpty) {
+              _uploadFilesErrorMessage = errorMessages.first.toString();
+            } else {
+              _uploadFilesErrorMessage = errorMessages.toString();
+            }
+          } else {
+            _isUploadFilesError = false;
+          }
+        } else if (result.containsKey('title') &&
+            result.containsKey('status')) {
+          // Check if it's an error response with title and status
+          if (result['status'] != 200 && result['status'] != 201) {
+            _isUploadFilesError = true;
+            _uploadFilesErrorMessage =
+                result['title']?.toString() ?? 'Failed to upload cover.';
+          } else {
+            _isUploadFilesError = false;
+          }
+        } else {
+          _isUploadFilesError = false;
+        }
       } else {
         _isUploadFilesError = true;
         _uploadFilesErrorMessage = 'Failed to upload cover.';
@@ -306,7 +422,6 @@ class BooksState extends ChangeNotifier {
   }
 
   Future<void> searchBooks({String? query}) async {
-
     _isSearching = true;
     _isSearchError = false;
     _searchErrorMessage = '';
@@ -320,14 +435,191 @@ class BooksState extends ChangeNotifier {
         _isSearchError = false;
       } else {
         _isSearchError = true;
-        _searchErrorMessage = 'Failed to search books.';
+        _searchErrorMessage =
+            'Failed to search books. Please check your connection.';
       }
     } catch (e) {
       _isSearchError = true;
-      _searchErrorMessage = e.toString();
+      _searchErrorMessage = 'Failed to search books: ${e.toString()}';
+    } finally {
+      _isSearching = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> onGetReviews(String bookId) async {
+    _isLoadingReviews = true;
+    _isErrorReviews = false;
+    _errorMessageReviews = '';
+    notifyListeners();
+
+    try {
+      final result = await ReviewService.getReviews(bookId);
+
+      if (result != null) {
+        _reviews = result;
+        _isErrorReviews = false;
+      } else {
+        _isErrorReviews = true;
+        _errorMessageReviews = 'Failed to load reviews.';
+      }
+    } catch (e) {
+      _isErrorReviews = true;
+      _errorMessageReviews = e.toString();
     }
 
-    _isSearching = false;
+    _isLoadingReviews = false;
+    notifyListeners();
+  }
+
+  void clearReviews() {
+    _reviews = null;
+    _isErrorReviews = false;
+    _errorMessageReviews = '';
+    notifyListeners();
+  }
+
+  Future<void> getAuthorBooks() async {
+    _isLoadingAuthorBooks = true;
+    _isErrorAuthorBooks = false;
+    _errorMessageAuthorBooks = '';
+    notifyListeners();
+
+    try {
+      final result = await BooksService.getAuthorBooks();
+
+      if (result != null) {
+        _authorBooks = result;
+        _isErrorAuthorBooks = false;
+      } else {
+        _isErrorAuthorBooks = true;
+        // _errorMessageAuthorBooks = 'Failed to load your books.';
+      }
+    } catch (e) {
+      _isErrorAuthorBooks = true;
+      _errorMessageAuthorBooks = e.toString();
+    }
+
+    _isLoadingAuthorBooks = false;
+    notifyListeners();
+  }
+
+  Future<void> getMostPopularBooks({int page = 1, int pageSize = 20}) async {
+    _isLoadingMostPopular = true;
+    _isErrorMostPopular = false;
+    _errorMessageMostPopular = '';
+    notifyListeners();
+
+    try {
+      final result = await BooksService.getMostPopularBooks(
+        page: page,
+        pageSize: pageSize,
+      );
+
+      if (result != null) {
+        _mostPopularBooks = result;
+        _isErrorMostPopular = false;
+      } else {
+        _isErrorMostPopular = true;
+        _errorMessageMostPopular = 'Failed to load popular books.';
+      }
+    } catch (e) {
+      _isErrorMostPopular = true;
+      _errorMessageMostPopular = e.toString();
+    }
+
+    _isLoadingMostPopular = false;
+    notifyListeners();
+  }
+
+  Future<void> updateBook({
+    required String bookId,
+    required String title,
+    required String description,
+    required double priceTzs,
+    required String coverImageUrl,
+    required String bookFileUrl,
+    required int totalPages,
+    required List<String> genreIds,
+  }) async {
+    _isUpdatingBook = true;
+    _isUpdateBookError = false;
+    _updateBookErrorMessage = '';
+    notifyListeners();
+
+    try {
+      final result = await BooksService.updateBook(
+        bookId: bookId,
+        title: title,
+        description: description,
+        priceTzs: priceTzs,
+        coverImageUrl: coverImageUrl,
+        bookFileUrl: bookFileUrl,
+        totalPages: totalPages,
+        genreIds: genreIds,
+      );
+
+      if (result != null) {
+        _updatedBook = result;
+        _isUpdateBookError = false;
+      } else {
+        _isUpdateBookError = true;
+        _updateBookErrorMessage = 'Failed to update book.';
+      }
+    } catch (e) {
+      _isUpdateBookError = true;
+      _updateBookErrorMessage = e.toString();
+    }
+
+    _isUpdatingBook = false;
+    notifyListeners();
+  }
+
+  Future<void> deleteBook(String bookId) async {
+    _isDeletingBook = true;
+    _isDeleteBookError = false;
+    _deleteBookErrorMessage = '';
+    notifyListeners();
+
+    try {
+      final success = await BooksService.deleteBook(bookId);
+
+      if (success) {
+        _isDeleteBookError = false;
+      } else {
+        _isDeleteBookError = true;
+        _deleteBookErrorMessage = 'Failed to delete book.';
+      }
+    } catch (e) {
+      _isDeleteBookError = true;
+      _deleteBookErrorMessage = e.toString();
+    }
+
+    _isDeletingBook = false;
+    notifyListeners();
+  }
+
+  Future<void> submitBookForReview(String bookId) async {
+    _isSubmittingBook = true;
+    _isSubmitBookError = false;
+    _submitBookErrorMessage = '';
+    notifyListeners();
+
+    try {
+      final success = await BooksService.submitBookForReview(bookId);
+
+      if (success) {
+        _isSubmitBookError = false;
+      } else {
+        _isSubmitBookError = true;
+        _submitBookErrorMessage = 'Failed to submit book for review.';
+      }
+    } catch (e) {
+      _isSubmitBookError = true;
+      _submitBookErrorMessage = e.toString();
+    }
+
+    _isSubmittingBook = false;
     notifyListeners();
   }
 }

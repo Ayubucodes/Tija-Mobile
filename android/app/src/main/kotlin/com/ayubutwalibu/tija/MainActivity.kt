@@ -1,4 +1,4 @@
-package com.example.tija
+package com.ayubutwalibu.tija
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine

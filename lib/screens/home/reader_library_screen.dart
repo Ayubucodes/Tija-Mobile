@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:tija/components/loading_overlay.dart';
 import 'package:tija/constants/app_asset.dart';
@@ -7,9 +6,11 @@ import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/models/reader_library_model.dart';
 import 'package:tija/screens/home/book_detail_screen.dart';
+import 'package:tija/states/books_state.dart';
 import 'package:tija/states/reader_library_state.dart';
+import 'package:tija/utils/app_util.dart';
+import 'package:tija/widgets/empty_state.dart';
 import 'package:tija/widgets/placeholder.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class ReaderLibraryScreen extends StatefulWidget {
   const ReaderLibraryScreen({super.key});
@@ -19,12 +20,36 @@ class ReaderLibraryScreen extends StatefulWidget {
 }
 
 class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
+  bool _isNavigating = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReaderLibraryState>().getReaderLibrary();
     });
+  }
+
+  Future<void> navigateToBookDetail(String bookId) async {
+    final bookState = Provider.of<BooksState>(context, listen: false);
+    setState(() => _isNavigating = true);
+    await context.read<BooksState>().onGetBookById(bookId);
+    if (bookState.isErrorDetail) {
+      AppUtil.showToastMessage(
+        isError: true,
+        message: 'failed to load books details',
+      );
+      return;
+    }
+    if (mounted) {
+      setState(() => _isNavigating = false);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              BookDetailScreen(book: BookDetailArgs(bookId: bookId)),
+        ),
+      );
+    }
   }
 
   @override
@@ -34,7 +59,7 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
 
     return Consumer<ReaderLibraryState>(
       builder: (_, libraryState, __) => LoadingOverlay(
-        isVisible: libraryState.isLoading,
+        isVisible: _isNavigating,
         child: Scaffold(
           backgroundColor: theme.primaryBackground,
           body: SafeArea(
@@ -100,35 +125,11 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
                   child: Consumer<ReaderLibraryState>(
                     builder: (context, libraryState, _) {
                       if (libraryState.isError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                libraryState.errorMessage,
-                                style: TextStyle(
-                                  fontSize: width / 26,
-                                  color: theme.secondaryText,
-                                ),
-                              ),
-                              SizedBox(height: width / 22),
-                              ElevatedButton(
-                                onPressed: () => context
-                                    .read<ReaderLibraryState>()
-                                    .getReaderLibrary(),
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        );
+                        return EmptyState(message: libraryState.errorMessage);
                       }
 
                       if (libraryState.books.isEmpty) {
-                        return _buildEmptyState(
-                          width,
-                          theme,
-                          'No books in your library',
-                        );
+                        return EmptyState(message: 'No books in your library');
                       }
 
                       return Padding(
@@ -138,25 +139,26 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
                           width / 22,
                           0,
                         ),
-                        child: ListView.builder(
-                          physics: const AlwaysScrollableScrollPhysics(
-                            parent: BouncingScrollPhysics(),
-                          ),
-                          padding: EdgeInsets.only(bottom: width / 12),
-                          itemCount: libraryState.books.length,
-                          itemBuilder: (context, index) {
-                            final book = libraryState.books[index];
-                            return _LibraryBookCard(
-                              book: book,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => BookDetailScreen(
-                                    book: BookDetailArgs(bookId: book.bookId),
-                                  ),
-                                ),
-                              ),
-                            );
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            await context
+                                .read<ReaderLibraryState>()
+                                .getReaderLibrary();
                           },
+                          child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            padding: EdgeInsets.only(bottom: width / 12),
+                            itemCount: libraryState.books.length,
+                            itemBuilder: (context, index) {
+                              final book = libraryState.books[index];
+                              return _LibraryBookCard(
+                                book: book,
+                                onTap: () => navigateToBookDetail(book.bookId),
+                              );
+                            },
+                          ),
                         ),
                       );
                     },
@@ -165,32 +167,6 @@ class _ReaderLibraryScreenState extends State<ReaderLibraryScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(double width, AppTheme theme, String message) {
-    return SizedBox(
-      height: width / 1.6,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              AppAssets.STAR_ICON,
-              width: width / 15,
-              height: width / 15,
-            ),
-            SizedBox(height: width / 30),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: width / 26,
-                color: theme.secondaryText,
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -210,92 +186,116 @@ class _LibraryBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = AppTheme.of(context);
     final width = MediaQuery.of(context).size.width;
+    final coverHeight = width / 2.6;
 
     return GestureDetector(
       onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.only(bottom: width / 22),
+      child: Container(
+        margin: EdgeInsets.only(bottom: width / 22),
+        height: coverHeight,
+        padding: EdgeInsets.only(right: width / 25),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: theme.inputFilledColor,
+          borderRadius: BorderRadius.circular(width / 27),
+          border: Border.all(color: theme.lineColor),
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover
+            // Cover — flush against the card's left edge, so its left
+            // corners match the card's own radius exactly.
             ClipRRect(
-              borderRadius: BorderRadius.circular(width / 30),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(width / 27),
+                bottomLeft: Radius.circular(width / 27),
+              ),
               child: book.coverImageUrl != null
                   ? Image.network(
                       book.coverImageUrl!,
                       width: width / 3.5,
-                      height: width / 2.6,
+                      height: coverHeight,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          width: width / 3.5,
+                          height: coverHeight,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1,
+                                color: AppColor.defaultSecondaryColor,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                       errorBuilder: (_, __, ___) => PlaceholderCover(
                         width: width / 3.5,
-                        height: width / 2.6,
+                        height: coverHeight,
                       ),
                     )
-                  : PlaceholderCover(width: width / 3.5, height: width / 2.6),
+                  : PlaceholderCover(width: width / 3.5, height: coverHeight),
             ),
-            SizedBox(width: width / 27),
-            // Details
+            SizedBox(width: width / 22),
+            // Details — inset from top/bottom so text doesn't touch the
+            // card's edges, while the cover stays flush on the left.
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: width / 90),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      style: TextStyle(
-                        fontSize: width / 22,
-                        fontWeight: FontWeight.w700,
-                        color: theme.primaryText,
+                padding: EdgeInsets.symmetric(vertical: width / 40),
+                child: SizedBox(
+                  height: coverHeight - (width / 40) * 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            book.title,
+                            style: TextStyle(
+                              fontSize: width / 22,
+                              fontWeight: FontWeight.w700,
+                              color: theme.primaryText,
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: width / 70),
+                          Text(
+                            book.authorName,
+                            style: TextStyle(
+                              fontSize: width / 30,
+                              color: theme.secondaryText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: width / 45),
+                          Text(
+                            'TZS ${book.priceTzs.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: width / 26,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.defaultSecondaryColor,
+                            ),
+                          ),
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: width / 60),
-                    Text(
-                      book.authorName,
-                      style: TextStyle(
-                        fontSize: width / 28,
-                        color: theme.secondaryText,
-                      ),
-                    ),
-                    SizedBox(height: width / 36),
-                    Text(
-                      'TZS ${book.priceTzs.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: width / 26,
-                        fontWeight: FontWeight.w700,
-                        color: AppColor.defaultSecondaryColor,
-                      ),
-                    ),
-                    SizedBox(height: width / 45),
-                    if (book.progressPercentage != null)
-                      _ProgressBar(progress: book.progressPercentage!),
-                  ],
+                      if (book.progressPercentage != null)
+                        _ProgressBar(progress: book.progressPercentage!),
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDefaultCover(double width) {
-    return Container(
-      width: width / 3.5,
-      height: width / 2.6,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(width / 30),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFD4A77A), Color(0xFF9D6638)],
-        ),
-      ),
-      child: Center(
-        child: Icon(Iconsax.book, color: Colors.white54, size: width / 10),
       ),
     );
   }

@@ -19,12 +19,14 @@ class AuthState extends ChangeNotifier {
   bool _isLoading = false;
   bool _isError = false;
   String _errorMessage = '';
+  bool _noInactivityTimeout = false;
 
   AuthResponse? get user => _user;
   bool get isLoading => _isLoading;
   bool get isError => _isError;
   String get errorMessage => _errorMessage;
   bool get isLoggedIn => _user != null;
+  bool get noInactivityTimeout => _noInactivityTimeout;
 
   // ── Login ────────────────────────────────────────────────────────────────
   Future<bool> onLogin({
@@ -45,7 +47,7 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await AuthService.login(
+      final (result, errorMessage) = await AuthService.login(
         username: username,
         password: password,
       );
@@ -68,11 +70,13 @@ class AuthState extends ChangeNotifier {
         return true;
       } else {
         _isError = true;
-        _errorMessage = 'Invalid email or password.';
+        _errorMessage = errorMessage.isNotEmpty
+            ? errorMessage
+            : 'Invalid email or password.';
       }
     } catch (e) {
       _isError = true;
-      _errorMessage = e.toString();
+      _errorMessage = 'An error occurred. Please try again.';
     }
 
     _isLoading = false;
@@ -182,11 +186,63 @@ class AuthState extends ChangeNotifier {
   // ── Logout ───────────────────────────────────────────────────────────────
   Future<void> logout() async {
     _user = null;
+    _noInactivityTimeout = true;
     await _storage.delete(key: AppPreference.accessToken);
     await _storage.delete(key: AppPreference.userId);
     await _storage.delete(key: AppPreference.fullName);
     await _storage.delete(key: AppPreference.email);
     await _storage.delete(key: AppPreference.phoneNumber);
     notifyListeners();
+  }
+
+  // ── Set App No Inactivity Status ──────────────────────────────────────────
+  void onSetAppNoInactivityStatus({required bool inactivityStatus}) {
+    _noInactivityTimeout = inactivityStatus;
+    notifyListeners();
+  }
+
+  // ── Arm Session ───────────────────────────────────────────────────────────
+  void armSession() {
+    _noInactivityTimeout = false;
+    notifyListeners();
+  }
+
+  // ── Forgot Password ─────────────────────────────────────────────────────
+  Future<bool> onForgotPassword({required String email}) async {
+    if (!_connectivityState.connectivityStatus) {
+      AppUtil.showToastMessage(
+        message: 'Please check your network.',
+        isError: true,
+      );
+      return false;
+    }
+
+    _isLoading = true;
+    _isError = false;
+    _errorMessage = '';
+    notifyListeners();
+
+    try {
+      final (success, message) = await AuthService.forgotPassword(email: email);
+
+      if (success) {
+        _isError = false;
+        _isLoading = false;
+        notifyListeners();
+
+        AppUtil.showToastMessage(message: message, isError: false);
+        return true;
+      } else {
+        _isError = true;
+        _errorMessage = message;
+      }
+    } catch (e) {
+      _isError = true;
+      _errorMessage = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 }

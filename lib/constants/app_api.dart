@@ -17,6 +17,9 @@ class AppApi {
   static final registerAuthorUrl = '/auth/register/author';
   static final registerAuthorFullUrl = appURL(registerAuthorUrl);
 
+  static final forgotPasswordUrl = '/auth/forgot-password';
+  static final forgotPasswordFullUrl = appURL(forgotPasswordUrl);
+
   static final authorsUrl = '/authors';
   static get authorsFullUrl => appURL(authorsUrl);
 
@@ -57,4 +60,33 @@ class AppApi {
 
   static final initiatePaymentUrl = '/payments/initiate';
   static get initiatePaymentFullUrl => appURL(initiatePaymentUrl);
+
+  static final requestPayoutUrl = '/payouts/request';
+  static get requestPayoutFullUrl => appURL(requestPayoutUrl);
+
+  static Future<String> submitReviewFullUrl(String bookId) async {
+    return appURL('/books/$bookId/reviews');
+  }
+
+  static Future<String> getReviewsFullUrl(String bookId) async {
+    return appURL('/books/$bookId/reviews');
+  }
+
+  static final authorBooksUrl = '/books/my';
+  static get authorBooksFullUrl => appURL(authorBooksUrl);
+
+  static Future<String> updateBookFullUrl(String id) async {
+    return appURL('/books/$id');
+  }
+
+  static Future<String> deleteBookFullUrl(String id) async {
+    return appURL('/books/$id');
+  }
+
+  static Future<String> submitBookFullUrl(String id) async {
+    return appURL('/books/$id/submit');
+  }
+
+  static final profileUrl = '/profile';
+  static get profileFullUrl => appURL(profileUrl);
 }

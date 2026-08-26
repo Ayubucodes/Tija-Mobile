@@ -16,7 +16,7 @@ class ReaderService {
     return await _storage.read(key: AppPreference.accessToken);
   }
 
-  static Future<ReaderResponse?> openBook(String bookId) async {
+  static Future<Map<String, dynamic>?> openBook(String bookId) async {
     try {
       final token = await _getAccessToken();
       final baseUrl = await AppApi.readerOpenBookFullUrl(bookId);
@@ -34,8 +34,13 @@ class ReaderService {
 
       if (response.statusCode >= 200 && response.statusCode <= 299) {
         if (dataResponse is Map<String, dynamic>) {
-          return ReaderResponse.fromJson(dataResponse);
+          return dataResponse;
         }
+      }
+
+      // Return error response for non-2xx status codes
+      if (dataResponse is Map<String, dynamic>) {
+        return dataResponse;
       }
 
       return null;

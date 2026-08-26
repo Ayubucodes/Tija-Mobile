@@ -4,7 +4,6 @@ import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 
 class InputField extends StatefulWidget {
-  final String label;
   final bool isReadOnly;
   final String hintText;
   final TextEditingController? controller;
@@ -15,7 +14,6 @@ class InputField extends StatefulWidget {
 
   const InputField({
     super.key,
-    this.label = '',
     required this.hintText,
     this.controller,
     this.isPassword = false,
@@ -38,16 +36,6 @@ class _InputFieldState extends State<InputField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: theme.primaryText,
-            letterSpacing: 0.1,
-          ),
-        ),
-        const SizedBox(height: 8),
         TextFormField(
           readOnly: widget.isReadOnly,
           controller: widget.controller,
@@ -66,7 +54,7 @@ class _InputFieldState extends State<InputField> {
               fontSize: 14,
               fontWeight: FontWeight.w400,
             ),
-            filled: true,
+            filled: false,
             fillColor: theme.inputFilledColor,
             prefixIcon: widget.prefixIcon,
             suffixIcon: widget.isPassword
@@ -90,17 +78,15 @@ class _InputFieldState extends State<InputField> {
             ),
             // --- key fix: collapse the reserved error line entirely ---
             isDense: true,
-            errorStyle: const TextStyle(
-              fontSize: 0,
-              height: 0,
-            ),
+            errorStyle: const TextStyle(fontSize: 0, height: 0),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
+              // borderSide: const BorderSide(color: Color(0xFFAAAAAA), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: theme.borderColor, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -111,17 +97,11 @@ class _InputFieldState extends State<InputField> {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: Color(0xFFE53935),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: Color(0xFFE53935),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE53935), width: 1),
             ),
           ),
         ),

@@ -33,7 +33,20 @@ class _ReadScreenState extends State<ReadScreen> with ReaderMixin {
   @override
   void initState() {
     super.initState();
-    loadBook(widget.args.bookId);
+    // Book data is pre-loaded before navigation, so we just need to set up the UI
+    final readerState = context.read<ReaderState>();
+    if (readerState.readerResponse != null && readerState.pdfBytes != null) {
+      setState(() {
+        currentPage = readerState.readerResponse!.currentPage + 1;
+        isLoaded = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    context.read<ReaderState>().clear();
+    super.dispose();
   }
 
   @override
@@ -51,7 +64,6 @@ class _ReadScreenState extends State<ReadScreen> with ReaderMixin {
                 (!isLoaded || readerState.pdfBytes == null),
             child: Builder(
               builder: (context) {
-
                 if (!isLoaded || readerState.pdfBytes == null) {
                   return const SizedBox.shrink();
                 }
@@ -163,22 +175,22 @@ class _ReadAppBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => themeState.toggleTheme(),
-                  child: Container(
-                    width: width / 10,
-                    height: width / 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.secondaryBackground,
-                    ),
-                    child: Icon(
-                      themeState.isDarkTheme ? Iconsax.sun_1 : Iconsax.moon,
-                      color: theme.primaryText,
-                      size: width / 18,
-                    ),
-                  ),
-                ),
+                // GestureDetector(
+                //   onTap: () => themeState.toggleTheme(),
+                //   child: Container(
+                //     width: width / 10,
+                //     height: width / 10,
+                //     decoration: BoxDecoration(
+                //       shape: BoxShape.circle,
+                //       color: theme.secondaryBackground,
+                //     ),
+                //     child: Icon(
+                //       themeState.isDarkTheme ? Iconsax.sun_1 : Iconsax.moon,
+                //       color: theme.primaryText,
+                //       size: width / 18,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

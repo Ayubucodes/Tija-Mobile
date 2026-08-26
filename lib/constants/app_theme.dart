@@ -15,14 +15,16 @@ abstract class AppTheme {
       );
       return DarkModeTheme();
     } else {
+      final lightTheme = LightModeTheme();
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
-          statusBarColor: Color(0XFFF6F6F6),
+          statusBarColor: Color(0x00000000),
           statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Color(0xFFE8E5DE),
           systemNavigationBarContrastEnforced: true,
         ),
       );
-      return LightModeTheme();
+      return lightTheme;
     }
   }
 
@@ -46,6 +48,7 @@ abstract class AppTheme {
   late Color customCardText;
   late Color customCardColor;
   late Color bottomNavigationTextColor;
+  late Color borderColor;
 
   Typography get typography => ThemeTypography(this);
 
@@ -64,9 +67,9 @@ class LightModeTheme extends AppTheme {
   @override
   late Color alternate = const Color(0xFFE0E0E0);
   @override
-  late Color primaryBackground = const Color(0xFFFFFFFF);
+  late Color secondaryBackground = const Color(0xFFF3F0EA); // grain-toned, not pure white
   @override
-  late Color secondaryBackground = const Color(0xFFF5F5F5);
+  late Color primaryBackground = const Color(0xFFE8E5DE); 
   @override
   late Color primaryText = const Color(0xFF1A1A1A);
   @override
@@ -80,7 +83,7 @@ class LightModeTheme extends AppTheme {
   @override
   late Color actionColor = const Color(0xFF9D6638);
   @override
-  late Color inputFilledColor = const Color(0xFFF5F5F5);
+  late Color inputFilledColor = const Color(0xFFF3F0EA);
   @override
   late Color balanceCardColor = const Color(0xFF4E220F);
   @override
@@ -89,6 +92,8 @@ class LightModeTheme extends AppTheme {
   late Color customCardColor = const Color(0xFFF7F1DE);
   @override
   late Color bottomNavigationTextColor = const Color(0xFF9D6638);
+  @override
+  late Color borderColor = const Color.fromARGB(172, 170, 170, 170);
 }
 
 class DarkModeTheme extends AppTheme {
@@ -126,6 +131,8 @@ class DarkModeTheme extends AppTheme {
   late Color customCardColor = const Color(0xFF2C2C2C);
   @override
   late Color bottomNavigationTextColor = const Color(0xFF9D6638);
+  @override
+  late Color borderColor = const Color.fromARGB(68, 170, 170, 170);
 }
 
 abstract class Typography {

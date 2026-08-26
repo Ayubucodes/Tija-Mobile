@@ -52,7 +52,7 @@ class AuthorState extends ChangeNotifier {
         return true;
       } else {
         _isError = true;
-        _errorMessage = 'Failed to load authors.';
+        _errorMessage = 'Most authors will be displayed here';
       }
     } catch (e) {
       _isError = true;

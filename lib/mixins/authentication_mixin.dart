@@ -4,6 +4,8 @@ import 'package:tija/components/shake_error.dart';
 import 'package:tija/screens/authentication/login.dart';
 import 'package:tija/screens/authentication/register.dart';
 import 'package:tija/states/auth_state.dart';
+import 'package:tija/states/books_state.dart';
+import 'package:tija/states/author_state.dart';
 import 'package:tija/utils/app_util.dart';
 
 mixin AuthenticationMixin<T extends StatefulWidget> on State<T> {
@@ -64,6 +66,14 @@ mixin AuthenticationMixin<T extends StatefulWidget> on State<T> {
     if (!mounted) return;
 
     if (success) {
+      context.read<AuthState>().armSession();
+
+      // Load data after successful login
+      await context.read<BooksState>().onGetBooks();
+      await context.read<BooksState>().getMostPopularBooks();
+      await context.read<AuthorState>().getAuthors();
+      await context.read<AuthorState>().getAuthorDashboard();
+
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } else {
       AppUtil.showToastMessage(
@@ -103,6 +113,14 @@ mixin AuthenticationMixin<T extends StatefulWidget> on State<T> {
       if (!mounted) return;
 
       if (loginSuccess) {
+        context.read<AuthState>().armSession();
+
+        // Load data after successful login
+        await context.read<BooksState>().onGetBooks();
+        await context.read<BooksState>().getMostPopularBooks();
+        await context.read<AuthorState>().getAuthors();
+        await context.read<AuthorState>().getAuthorDashboard();
+
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('/home', (route) => false);
@@ -133,5 +151,26 @@ mixin AuthenticationMixin<T extends StatefulWidget> on State<T> {
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
+  }
+
+  Future<void> handleForgotPassword() async {
+    if (!(formKey.currentState?.validate() ?? false)) return;
+    FocusScope.of(context).unfocus();
+
+    final success = await context.read<AuthState>().onForgotPassword(
+      email: emailController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      // Navigate back to login after successful request
+      Navigator.pop(context);
+    } else {
+      AppUtil.showToastMessage(
+        isError: true,
+        message: context.read<AuthState>().errorMessage,
+      );
+    }
   }
 }
