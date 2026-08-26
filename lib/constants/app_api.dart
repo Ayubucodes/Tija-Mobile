@@ -86,4 +86,7 @@ class AppApi {
   static Future<String> submitBookFullUrl(String id) async {
     return appURL('/books/$id/submit');
   }
+
+  static final profileUrl = '/profile';
+  static get profileFullUrl => appURL(profileUrl);
 }

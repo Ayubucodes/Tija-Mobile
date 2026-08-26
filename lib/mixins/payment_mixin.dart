@@ -71,11 +71,11 @@ mixin PaymentMixin<T extends StatefulWidget> on State<T> {
                   Navigator.of(context).pop();
                 }
               } else {
-                AppUtil.showToastMessage(message: errorMessage, isError: true);
+                AppUtil.showToastMessage(message: 'Something went wrong', isError: true);
               }
             } catch (e) {
               AppUtil.showToastMessage(
-                message: 'Payment failed. Please try again.',
+                message: 'Something went wrong',
                 isError: true,
               );
             }

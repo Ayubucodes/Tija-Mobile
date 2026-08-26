@@ -17,6 +17,7 @@ import 'package:tija/states/reader_library_state.dart';
 import 'package:tija/states/reader_state.dart';
 import 'package:tija/states/theme_state.dart';
 import 'package:tija/states/connectivity_state.dart';
+import 'package:tija/states/profile_state.dart';
 import 'package:tija/widgets/session_timeout_listener.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -43,6 +44,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ReaderState()),
         ChangeNotifierProvider(create: (_) => ReaderLibraryState()),
         ChangeNotifierProvider(create: (_) => PayoutState()),
+        ChangeNotifierProvider(create: (_) => ProfileState()),
       ],
       child: const MyApp(),
     ),
@@ -56,7 +58,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeState = context.watch<ThemeState>();
     final authState = context.watch<AuthState>();
-
 
     const String minAppVersion = ''; // Change this to enable force updates
 

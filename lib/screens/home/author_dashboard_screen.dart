@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:tija/components/custom_bottom_navigation.dart';
 import 'package:tija/components/loading_overlay.dart';
 import 'package:tija/constants/app_color.dart';
@@ -113,16 +114,29 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                               width: width / 12,
                               child: Center(
                                 child: GestureDetector(
-                                  onTap: () async {
-                                    await authState.logout();
-                                    if (mounted) {
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (_) => const LoginScreen(),
-                                        ),
-                                        (route) => false,
-                                      );
-                                    }
+                                  onTap: () {
+                                    AwesomeDialog(
+                                      context: context,
+                                      dialogType: DialogType.warning,
+                                      animType: AnimType.scale,
+                                      title: 'Logout',
+                                      desc: 'Are you sure you want to logout?',
+                                      btnCancelOnPress: () {},
+                                      btnOkOnPress: () async {
+                                        await authState.logout();
+                                        if (mounted) {
+                                          Navigator.of(
+                                            context,
+                                          ).pushAndRemoveUntil(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const LoginScreen(),
+                                            ),
+                                            (route) => false,
+                                          );
+                                        }
+                                      },
+                                    ).show();
                                   },
                                   child: Icon(
                                     Iconsax.logout,
@@ -290,100 +304,100 @@ class _AuthorDashboardScreenState extends State<AuthorDashboardScreen>
                                 ),
                                 SizedBox(height: width / 22),
 
-                                Consumer<AuthorState>(
-                                  builder: (_, authorState, __) {
-                                    return Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(
-                                          width / 18,
-                                        ),
-                                        onTap: () async {
-                                          navigateToAuthorLibrary();
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.all(width / 22),
-                                          decoration: BoxDecoration(
-                                            color: theme.secondaryBackground,
-                                            borderRadius: BorderRadius.circular(
-                                              width / 18,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColor
-                                                  .defaultSecondaryColor
-                                                  .withOpacity(0.4),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: width / 10,
-                                                height: width / 10,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: AppColor
-                                                      .defaultSecondaryColor
-                                                      .withOpacity(0.12),
-                                                  border: Border.all(
-                                                    color: AppColor
-                                                        .defaultSecondaryColor
-                                                        .withOpacity(0.4),
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: Icon(
-                                                  Iconsax.book,
-                                                  color: AppColor
-                                                      .defaultSecondaryColor,
-                                                  size: width / 20,
-                                                ),
-                                              ),
-                                              SizedBox(width: width / 22),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      'My Books',
-                                                      style: TextStyle(
-                                                        fontSize: width / 28,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color:
-                                                            theme.primaryText,
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: width / 150,
-                                                    ),
-                                                    Text(
-                                                      '${authorState.authorDashboard?.totalBooks ?? 0} books available',
-                                                      style: TextStyle(
-                                                        fontSize: width / 34,
-                                                        color:
-                                                            theme.secondaryText,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Icon(
-                                                Iconsax.arrow_right_3,
-                                                color: theme.secondaryText,
-                                                size: width / 24,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                SizedBox(height: width / 22),
+                                // Consumer<AuthorState>(
+                                //   builder: (_, authorState, __) {
+                                //     return Material(
+                                //       color: Colors.transparent,
+                                //       child: InkWell(
+                                //         borderRadius: BorderRadius.circular(
+                                //           width / 18,
+                                //         ),
+                                //         onTap: () async {
+                                //           navigateToAuthorLibrary();
+                                //         },
+                                //         child: Container(
+                                //           padding: EdgeInsets.all(width / 22),
+                                //           decoration: BoxDecoration(
+                                //             color: theme.secondaryBackground,
+                                //             borderRadius: BorderRadius.circular(
+                                //               width / 18,
+                                //             ),
+                                //             border: Border.all(
+                                //               color: AppColor
+                                //                   .defaultSecondaryColor
+                                //                   .withOpacity(0.4),
+                                //               width: 1,
+                                //             ),
+                                //           ),
+                                //           child: Row(
+                                //             children: [
+                                //               Container(
+                                //                 width: width / 10,
+                                //                 height: width / 10,
+                                //                 decoration: BoxDecoration(
+                                //                   shape: BoxShape.circle,
+                                //                   color: AppColor
+                                //                       .defaultSecondaryColor
+                                //                       .withOpacity(0.12),
+                                //                   border: Border.all(
+                                //                     color: AppColor
+                                //                         .defaultSecondaryColor
+                                //                         .withOpacity(0.4),
+                                //                     width: 1,
+                                //                   ),
+                                //                 ),
+                                //                 child: Icon(
+                                //                   Iconsax.book,
+                                //                   color: AppColor
+                                //                       .defaultSecondaryColor,
+                                //                   size: width / 20,
+                                //                 ),
+                                //               ),
+                                //               SizedBox(width: width / 22),
+                                //               Expanded(
+                                //                 child: Column(
+                                //                   crossAxisAlignment:
+                                //                       CrossAxisAlignment.start,
+                                //                   children: [
+                                //                     Text(
+                                //                       'My Books',
+                                //                       style: TextStyle(
+                                //                         fontSize: width / 28,
+                                //                         fontWeight:
+                                //                             FontWeight.w700,
+                                //                         color:
+                                //                             theme.primaryText,
+                                //                       ),
+                                //                     ),
+                                //                     SizedBox(
+                                //                       height: width / 150,
+                                //                     ),
+                                //                     Text(
+                                //                       '${authorState.authorDashboard?.totalBooks ?? 0} books available',
+                                //                       style: TextStyle(
+                                //                         fontSize: width / 34,
+                                //                         color:
+                                //                             theme.secondaryText,
+                                //                       ),
+                                //                     ),
+                                //                   ],
+                                //                 ),
+                                //               ),
+                                //               Icon(
+                                //                 Iconsax.arrow_right_3,
+                                //                 color: theme.secondaryText,
+                                //                 size: width / 24,
+                                //               ),
+                                //             ],
+                                //           ),
+                                //         ),
+                                //       ),
+                                //     );
+                                //   },
+                                // ),
+                                // SizedBox(height: width / 22),
 
-                                // ── Upload Book Card ───────────────────────────────
+                                // Upload Book Card
                                 Material(
                                   color: Colors.transparent,
                                   child: InkWell(

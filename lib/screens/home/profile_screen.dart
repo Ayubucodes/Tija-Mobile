@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:tija/components/custom_bottom_navigation.dart';
 import 'package:tija/components/loading_overlay.dart';
+import 'package:tija/constants/app_asset.dart';
 import 'package:tija/constants/app_color.dart';
 import 'package:tija/constants/app_theme.dart';
 import 'package:tija/mixins/profile_mixin.dart';
 import 'package:tija/states/auth_state.dart';
 import 'package:tija/states/reader_library_state.dart';
+import 'package:tija/states/profile_state.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +23,9 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileState>().getProfile();
+    });
   }
 
   @override
@@ -65,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                     Expanded(
                       child: Center(
                         child: Text(
-                          'Profile',
+                          'Your Profile',
                           style: TextStyle(
                             fontSize: width / 22,
                             fontWeight: FontWeight.w600,
@@ -76,7 +82,19 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                     ),
                     // Logout
                     GestureDetector(
-                      onTap: onLogout,
+                      onTap: () {
+                        AwesomeDialog(
+                          context: context,
+                          dialogType: DialogType.warning,
+                          animType: AnimType.scale,
+                          title: 'Logout',
+                          desc: 'Are you sure you want to logout?',
+                          btnCancelOnPress: () {},
+                          btnOkOnPress: () {
+                            onLogout();
+                          },
+                        ).show();
+                      },
                       child: Padding(
                         padding: EdgeInsets.only(right: width / 90),
                         child: Icon(
@@ -89,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                   ],
                 ),
               ),
-              SizedBox(height: width / 18),
+              SizedBox(height: width / 8),
 
               // ── Scrollable body ───────────────────────────────────────────
               Expanded(
@@ -110,8 +128,8 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                                 clipBehavior: Clip.none,
                                 children: [
                                   Container(
-                                    width: width / 4,
-                                    height: width / 4,
+                                    width: width / 3.5,
+                                    height: width / 3.5,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
@@ -120,13 +138,11 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                                       ),
                                     ),
                                     child: ClipOval(
-                                      child: Container(
-                                        color: AppColor.inputFillColor,
-                                        child: Icon(
-                                          Iconsax.user,
-                                          size: width / 7.5,
-                                          color: AppColor.subtitleColor,
-                                        ),
+                                      child: Image.asset(
+                                        AppAssets.AVATAR_ICON,
+                                        width: width / 4,
+                                        height: width / 4,
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
@@ -186,20 +202,35 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileMixin {
                                   theme: theme,
                                 ),
                                 SizedBox(height: width / 22),
-                                Consumer<ReaderLibraryState>(
-                                  builder: (_, libraryState, __) {
+                                Consumer<ProfileState>(
+                                  builder: (_, profileState, __) {
+                                    final phone =
+                                        profileState.profile?.phoneNumber ??
+                                        userPhone;
                                     return _ProfileCard(
-                                      icon: Iconsax.book,
-                                      label: 'My Books',
-                                      value: libraryState.bookCount.toString(),
+                                      icon: Iconsax.message,
+                                      label: 'Phone',
+                                      value: phone,
                                       width: width,
                                       theme: theme,
-                                      onTap: () async {
-                                        navigateToReaderLibrary();
-                                      },
                                     );
                                   },
                                 ),
+                                // SizedBox(height: width / 22),
+                                // Consumer<ReaderLibraryState>(
+                                //   builder: (_, libraryState, __) {
+                                //     return _ProfileCard(
+                                //       icon: Iconsax.book,
+                                //       label: 'My Books',
+                                //       value: libraryState.bookCount.toString(),
+                                //       width: width,
+                                //       theme: theme,
+                                //       onTap: () async {
+                                //         navigateToReaderLibrary();
+                                //       },
+                                //     );
+                                //   },
+                                // ),
                               ],
                             ),
                           );
